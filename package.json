@@ -1,0 +1,12 @@
+{
+  "name": "coach-management",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "serve public",
+    "build": "echo 'Static site, no build needed'"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}
