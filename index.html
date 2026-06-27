@@ -15,14 +15,10 @@
   --radius:10px;--radius-lg:14px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
-
-/* ── Spinner ── */
 #loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── Login ── */
-#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;display:none}
+#login-screen{min-height:100vh;display:none;align-items:center;justify-content:center;padding:1rem}
 .login-wrap{width:100%;max-width:380px}
 .login-logo{width:52px;height:52px;background:var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;color:#fff;font-size:26px}
 .login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem}
@@ -30,51 +26,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
 .login-sub{text-align:center;font-size:13px;color:var(--text2);margin-bottom:1.5rem}
 .field{margin-bottom:1rem}
 .field label{display:block;font-size:13px;color:var(--text2);margin-bottom:5px;font-weight:500}
-.field input,.field select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none;transition:border-color .15s}
-.field input:focus,.field select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.12)}
-.btn-primary{width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:.25rem}
+.field input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
+.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.12)}
+.btn-primary{width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;margin-top:.25rem}
 .btn-primary:hover{background:var(--green-dark)}
 .err{color:var(--red);font-size:13px;text-align:center;margin-top:.75rem;display:none}
-
-/* ── App Shell ── */
 #app{display:none;flex-direction:column;min-height:100vh}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .topbar-l{display:flex;align-items:center;gap:10px}
-.tlogo{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
+.tlogo{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
 .ttitle{font-size:15px;font-weight:600}
 .topbar-r{display:flex;align-items:center;gap:8px}
 .ubadge{font-size:12px;padding:4px 10px;background:var(--bg);border-radius:20px;color:var(--text2);border:1px solid var(--border)}
-.btn-out{font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:4px}
-.btn-out:hover{background:var(--bg)}
-
-/* ── Nav ── */
+.btn-out{font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;color:var(--text)}
 .nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 .5rem}
 .nav::-webkit-scrollbar{display:none}
-.ntab{padding:13px 14px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:color .15s;font-weight:500}
+.ntab{padding:13px 14px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:5px;font-weight:500}
 .ntab.active{color:var(--green);border-bottom-color:var(--green)}
 .ntab i{font-size:16px}
-
-/* ── Content ── */
 .page{padding:1.25rem;max-width:860px;margin:0 auto;width:100%;display:none}
 .page.active{display:block}
-
-/* ── Section header ── */
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
 .sh h2{font-size:17px;font-weight:600}
-.btn-add{padding:8px 14px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600;transition:background .15s}
+.btn-add{padding:8px 14px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600}
 .btn-add:hover{background:var(--green-dark)}
-
-/* ── Stats ── */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
 .scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.875rem;text-align:center}
-.snum{font-size:24px;font-weight:700;color:var(--text)}
+.snum{font-size:24px;font-weight:700}
 .slabel{font-size:12px;color:var(--text2);margin-top:2px}
-
-/* ── Warning ── */
 .warn{background:var(--amber-bg);border:1px solid #FAC775;border-radius:var(--radius);padding:10px 14px;margin-bottom:.75rem;display:flex;align-items:center;gap:8px;font-size:13px;color:#633806}
 .warn-red{background:#FCEBEB;border-color:#F7C1C1;color:#791F1F}
-
-/* ── Cards ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:.75rem}
 .scard-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .avatar{width:40px;height:40px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--green-dark);flex-shrink:0}
@@ -88,7 +69,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
 .sess-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:4px;min-width:80px}
 .sess-fill{height:100%;background:var(--green);border-radius:2px}
 .acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.btn-sm{padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:3px;transition:background .15s;font-weight:500}
+.btn-sm{padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:3px;font-weight:500}
 .btn-sm:hover{background:var(--bg)}
 .btn-del{border-color:#fca5a5;color:var(--red)}
 .btn-del:hover{background:#FCEBEB}
@@ -97,86 +78,58 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
 .b-amber{background:var(--amber-bg);color:#633806}
 .b-red{background:#FCEBEB;color:#791F1F}
 .b-purple{background:#EEEDFE;color:#3C3489}
-
-/* ── Search ── */
 .search{position:relative;margin-bottom:1rem}
 .search input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
 .search input:focus{border-color:var(--green)}
 .search i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:17px}
-
-/* ── Log list ── */
 .log-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
 .log-item:last-child{border-bottom:none}
 .ldot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:5px;flex-shrink:0}
 .lbody{flex:1}
 .ltitle{font-size:13px;font-weight:600}
 .lmeta{font-size:12px;color:var(--text2);margin-top:2px}
-
-/* ── Modal ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
 .overlay.open{display:flex}
 .modal{background:#fff;border-radius:var(--radius-lg);padding:1.5rem;width:100%;max-width:460px;max-height:90vh;overflow-y:auto}
 .mhead{font-size:16px;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between}
-.mclose{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);line-height:1}
-.mclose:hover{color:var(--text)}
+.mclose{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);line-height:1}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:480px){.frow{grid-template-columns:1fr}.topbar .ttitle{display:none}}
+@media(max-width:480px){.frow{grid-template-columns:1fr}.ttitle{display:none}}
 .ff{margin-bottom:.875rem}
 .ff label{display:block;font-size:13px;color:var(--text2);margin-bottom:5px;font-weight:500}
-.ff input,.ff select,.ff textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
+.ff input,.ff select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
 .ff input:focus,.ff select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
 .mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
-.btn-cancel{padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:14px;color:var(--text);font-weight:500}
+.btn-cancel{padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:14px;font-weight:500}
 .btn-submit{padding:8px 20px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;cursor:pointer;font-weight:600}
-.btn-submit:hover{background:var(--green-dark)}
 .btn-submit:disabled{opacity:.5;cursor:not-allowed}
-
-/* ── Toast ── */
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1a1a;color:#f5f5f5;padding:10px 16px;border-radius:var(--radius);font-size:13px;z-index:999;display:none;align-items:center;gap:8px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-weight:500}
 .toast.show{display:flex}
-
-/* ── Empty ── */
-.empty{text-align:center;padding:2.5rem 1rem;color:var(--text2);font-size:14px}
+.empty{text-align:center;padding:2rem 1rem;color:var(--text2);font-size:14px}
 .empty i{font-size:36px;color:var(--text3);display:block;margin-bottom:.5rem}
-
-/* ── Responsive ── */
-@media(max-width:600px){
-  .scard-row{gap:8px}
-  .sess-box{flex:0 0 100%;display:flex;align-items:center;gap:10px}
-  .sess-bar{flex:1;min-width:0}
-}
 </style>
 </head>
 <body>
 
-<!-- Loading -->
 <div id="loading-screen">
   <div class="spinner"></div>
-  <div style="font-size:13px;color:var(--text2)">載入中…</div>
+  <div style="font-size:13px;color:var(--text2)">連線中…</div>
 </div>
 
-<!-- Login -->
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-logo"><i class="ti ti-whistle"></i></div>
     <div class="login-card">
       <div class="login-title">教練課程管理系統</div>
       <div class="login-sub">請輸入帳號密碼登入</div>
-      <div class="field">
-        <label>帳號</label>
-        <input type="text" id="lu" placeholder="輸入帳號" autocomplete="username">
-      </div>
-      <div class="field">
-        <label>密碼</label>
-        <input type="password" id="lp" placeholder="輸入密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
+      <div class="field"><label>帳號</label><input type="text" id="lu" placeholder="輸入帳號"></div>
+      <div class="field"><label>密碼</label><input type="password" id="lp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="btn-primary" onclick="doLogin()">登入</button>
-      <div class="err" id="lerr">帳號或密碼錯誤，請再試一次</div>
+      <div class="err" id="lerr">帳號或密碼錯誤</div>
     </div>
   </div>
 </div>
 
-<!-- App -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-l">
@@ -188,7 +141,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
       <button class="btn-out" onclick="doLogout()"><i class="ti ti-logout"></i></button>
     </div>
   </div>
-  <div class="nav" id="nav">
+  <div class="nav">
     <button class="ntab active" data-tab="dashboard" onclick="showTab('dashboard')"><i class="ti ti-layout-dashboard"></i>總覽</button>
     <button class="ntab" data-tab="students" onclick="showTab('students')"><i class="ti ti-users"></i>學員</button>
     <button class="ntab" data-tab="logclass" onclick="showTab('logclass')"><i class="ti ti-calendar-check"></i>登記上課</button>
@@ -196,7 +149,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     <button class="ntab admin-tab" data-tab="coaches" onclick="showTab('coaches')"><i class="ti ti-shield-check"></i>教練管理</button>
   </div>
 
-  <!-- Dashboard -->
   <div class="page active" id="page-dashboard">
     <div class="stats" id="stats"></div>
     <div id="warnings"></div>
@@ -206,27 +158,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     </div>
   </div>
 
-  <!-- Students -->
   <div class="page" id="page-students">
     <div class="sh"><h2>學員管理</h2><button class="btn-add" onclick="openModal('add-student')"><i class="ti ti-plus"></i>新增學員</button></div>
     <div class="search"><i class="ti ti-search"></i><input type="text" placeholder="搜尋姓名或電話…" oninput="renderStudents(this.value)"></div>
     <div id="students-list"></div>
   </div>
 
-  <!-- Log class -->
   <div class="page" id="page-logclass">
     <h2 style="font-size:17px;font-weight:600;margin-bottom:1rem">登記上課</h2>
     <div class="card">
-      <div class="ff">
-        <label>選擇學員</label>
-        <select id="log-sel" onchange="updateLogInfo()"><option value="">-- 請選擇學員 --</option></select>
-      </div>
+      <div class="ff"><label>選擇學員</label><select id="log-sel" onchange="updateLogInfo()"><option value="">-- 請選擇學員 --</option></select></div>
       <div id="log-info" style="display:none;background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:.875rem;font-size:13px;border:1px solid var(--border)"></div>
       <div class="frow">
         <div class="ff"><label>上課日期</label><input type="date" id="log-date"></div>
         <div class="ff"><label>上課時間</label><input type="time" id="log-time"></div>
       </div>
-      <div class="ff"><label>備註（選填）</label><input type="text" id="log-note" placeholder="課程內容、特別說明…"></div>
+      <div class="ff"><label>備註（選填）</label><input type="text" id="log-note" placeholder="課程內容…"></div>
       <button class="btn-add" style="width:100%;justify-content:center;padding:11px" onclick="logClass()"><i class="ti ti-check"></i>確認登記 −1 堂</button>
     </div>
     <div class="card" style="margin-top:.75rem">
@@ -235,54 +182,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     </div>
   </div>
 
-  <!-- Payment -->
   <div class="page" id="page-payment">
     <div class="sh"><h2>繳費記錄</h2><button class="btn-add" onclick="openModal('add-payment')"><i class="ti ti-plus"></i>新增繳費</button></div>
     <div id="payment-list"></div>
   </div>
 
-  <!-- Coaches -->
   <div class="page" id="page-coaches">
     <div class="sh"><h2>教練管理</h2><button class="btn-add" onclick="openModal('add-coach')"><i class="ti ti-plus"></i>新增教練</button></div>
     <div id="coaches-list"></div>
   </div>
 </div>
 
-<!-- Modal -->
 <div class="overlay" id="overlay" onclick="closeOutside(event)">
   <div class="modal" id="modal"></div>
 </div>
-
-<!-- Toast -->
 <div class="toast" id="toast"><i class="ti ti-check"></i><span id="tmsg"></span></div>
 
-<!-- Firebase SDKs -->
 <script type="module">
+// ══════════════════════════════════════════
+// ★ Firebase Realtime Database 設定 ★
+// ══════════════════════════════════════════
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import {
-  getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, limit, onSnapshot, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getDatabase, ref, set, get, push, update, remove, child, onValue }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-// ══════════════════════════════════════════
-// ★ 請將下方替換為你的 Firebase 設定 ★
-// ══════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "填入你的apiKey",
-  authDomain: "填入你的authDomain",
-  projectId: "填入你的projectId",
-  storageBucket: "填入你的storageBucket",
-  messagingSenderId: "填入你的messagingSenderId",
-  appId: "填入你的appId"
+  apiKey: "AIzaSyBH3hXiac97lZYIGyWI02qQx0FUz6-G0Q0",
+  authDomain: "howfun-coach.firebaseapp.com",
+  projectId: "howfun-coach",
+  storageBucket: "howfun-coach.firebasestorage.app",
+  messagingSenderId: "646997955171",
+  appId: "1:646997955171:web:d92fc35902533089359e56",
+  databaseURL: "https://howfun-coach-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
-// ══════════════════════════════════════════
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const fireApp = initializeApp(firebaseConfig);
+const db = getDatabase(fireApp);
 
-// ── helpers ──
+// helpers
 let currentUser = null;
-const uid = () => Math.random().toString(36).slice(2, 10);
 const $ = id => document.getElementById(id);
+const uid = () => Math.random().toString(36).slice(2, 10);
 const rem = s => (s.totalSessions || 0) - (s.usedSessions || 0);
 
 function toast(msg, isErr = false) {
@@ -293,50 +233,46 @@ function toast(msg, isErr = false) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// ── Cache ──
-let coaches = [], students = [], classLogs = [], payments = [];
+// local cache
+let coaches = {}, students = {}, classLogs = {}, payments = {};
+
+function objArr(obj) { return obj ? Object.entries(obj).map(([id, v]) => ({ id, ...v })) : []; }
 
 async function loadAll() {
-  const [cs, ss, ls, ps] = await Promise.all([
-    getDocs(collection(db, 'coaches')),
-    getDocs(collection(db, 'students')),
-    getDocs(query(collection(db, 'classLogs'), orderBy('createdAt', 'desc'), limit(200))),
-    getDocs(query(collection(db, 'payments'), orderBy('date', 'desc')))
-  ]);
-  coaches = cs.docs.map(d => ({ id: d.id, ...d.data() }));
-  students = ss.docs.map(d => ({ id: d.id, ...d.data() }));
-  classLogs = ls.docs.map(d => ({ id: d.id, ...d.data() }));
-  payments = ps.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await get(ref(db));
+  const d = snap.val() || {};
+  coaches = d.coaches || {};
+  students = d.students || {};
+  classLogs = d.classLogs || {};
+  payments = d.payments || {};
 }
 
-// ── Seed initial data if empty ──
 async function seedIfEmpty() {
-  const snap = await getDocs(collection(db, 'coaches'));
-  if (!snap.empty) return;
-  const batch = [
-    addDoc(collection(db, 'coaches'), { name: '總教練', username: 'admin', password: 'admin123', role: 'admin' }),
-    addDoc(collection(db, 'coaches'), { name: '陳教練', username: 'coach1', password: 'coach123', role: 'coach' }),
-    addDoc(collection(db, 'coaches'), { name: '林教練', username: 'coach2', password: 'coach456', role: 'coach' }),
-  ];
-  await Promise.all(batch);
+  const snap = await get(ref(db, 'coaches'));
+  if (snap.exists()) return;
+  await set(ref(db, 'coaches'), {
+    'admin': { name: '總教練', username: 'admin', password: 'admin123', role: 'admin' },
+    'c1': { name: '陳教練', username: 'coach1', password: 'coach123', role: 'coach' },
+    'c2': { name: '林教練', username: 'coach2', password: 'coach456', role: 'coach' },
+  });
 }
 
-// ── Init ──
 async function init() {
-  await seedIfEmpty();
-  await loadAll();
-  $('loading-screen').style.display = 'none';
-  $('login-screen').style.display = 'flex';
+  try {
+    await seedIfEmpty();
+    await loadAll();
+    $('loading-screen').style.display = 'none';
+    $('login-screen').style.display = 'flex';
+  } catch(e) {
+    $('loading-screen').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--red)"><i class="ti ti-alert-triangle" style="font-size:32px;display:block;margin-bottom:.5rem"></i>連線失敗：${e.message}</div>`;
+  }
 }
-init().catch(e => {
-  console.error(e);
-  $('loading-screen').innerHTML = '<div style="text-align:center;padding:2rem;color:#E24B4A"><i class="ti ti-alert-triangle" style="font-size:32px;display:block;margin-bottom:.5rem"></i>無法連線，請確認 Firebase 設定是否正確</div>';
-});
+init();
 
-// ── Login ──
-window.doLogin = async function () {
+// LOGIN
+window.doLogin = async function() {
   const u = $('lu').value.trim(), p = $('lp').value;
-  const coach = coaches.find(c => c.username === u && c.password === p);
+  const coach = objArr(coaches).find(c => c.username === u && c.password === p);
   if (!coach) { $('lerr').style.display = 'block'; return; }
   $('lerr').style.display = 'none';
   currentUser = coach;
@@ -350,15 +286,14 @@ window.doLogin = async function () {
   showTab('dashboard');
 };
 
-window.doLogout = function () {
+window.doLogout = function() {
   currentUser = null;
   $('app').style.display = 'none';
   $('login-screen').style.display = 'flex';
   $('lu').value = ''; $('lp').value = '';
 };
 
-// ── Tab ──
-window.showTab = function (tab) {
+window.showTab = function(tab) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
   $('page-' + tab).classList.add('active');
@@ -370,16 +305,16 @@ window.showTab = function (tab) {
   if (tab === 'coaches') renderCoaches();
 };
 
-// ── Visible students ──
 function myStudents() {
-  return currentUser.role === 'admin' ? students : students.filter(s => s.coachId === currentUser.id);
+  const all = objArr(students);
+  return currentUser.role === 'admin' ? all : all.filter(s => s.coachId === currentUser.id);
 }
 
-// ── Dashboard ──
 function renderDashboard() {
   const ms = myStudents();
   const today = new Date().toISOString().slice(0, 10);
-  const todayCount = classLogs.filter(l => l.date === today).length;
+  const logs = objArr(classLogs);
+  const todayCount = logs.filter(l => l.date === today).length;
   const low = ms.filter(s => rem(s) > 0 && rem(s) <= 2);
   const done = ms.filter(s => rem(s) <= 0);
   $('stats').innerHTML = `
@@ -389,23 +324,22 @@ function renderDashboard() {
     <div class="scard"><div class="snum">${done.length}</div><div class="slabel">課堂用完</div></div>`;
   let w = '';
   low.forEach(s => { w += `<div class="warn"><i class="ti ti-alert-triangle"></i>${s.name}：剩餘 <strong style="margin:0 2px">${rem(s)}</strong> 堂，請提醒續課</div>`; });
-  done.forEach(s => { w += `<div class="warn warn-red"><i class="ti ti-circle-x"></i>${s.name}：課堂已用完，請繳費續課</div>`; });
+  done.forEach(s => { w += `<div class="warn warn-red"><i class="ti ti-circle-x"></i>${s.name}：課堂已用完，請繳費</div>`; });
   $('warnings').innerHTML = w;
-  const recent = classLogs.slice(0, 8);
+  const recent = logs.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 8);
   $('recent-logs').innerHTML = recent.length ? recent.map(l => {
-    const s = students.find(st => st.id === l.studentId);
-    const c = coaches.find(co => co.id === l.coachId);
+    const s = students[l.studentId];
+    const c = coaches[l.coachId];
     return `<div class="log-item"><div class="ldot"></div><div class="lbody"><div class="ltitle">${s ? s.name : '—'}&ensp;<span style="font-weight:400;color:var(--text2)">${l.note || '無備註'}</span></div><div class="lmeta">${l.date} ${l.time}&ensp;${c ? c.name : ''}</div></div></div>`;
-  }).join('') : '<div class="empty"><i class="ti ti-calendar-off"></i>尚無上課紀錄</div>';
+  }).join('') : '<div class="empty"><i class="ti ti-calendar-off"></i>尚無紀錄</div>';
 }
 
-// ── Students ──
-window.renderStudents = function (q = '') {
-  const list = myStudents().filter(s => !q || (s.name + s.phone).includes(q));
+window.renderStudents = function(q = '') {
+  const list = myStudents().filter(s => !q || (s.name + (s.phone || '')).includes(q));
   $('students-list').innerHTML = list.length ? list.map(s => {
     const r = rem(s);
     const pct = s.totalSessions ? Math.max(0, Math.round(r / s.totalSessions * 100)) : 0;
-    const coach = coaches.find(c => c.id === s.coachId);
+    const coach = coaches[s.coachId];
     const badge = r <= 0 ? '<span class="badge b-red">課堂用完</span>' : r <= 2 ? '<span class="badge b-amber">即將用完</span>' : '<span class="badge b-green">正常</span>';
     return `<div class="card"><div class="scard-row">
       <div class="avatar">${s.name[0]}</div>
@@ -428,20 +362,15 @@ window.renderStudents = function (q = '') {
   }).join('') : '<div class="empty"><i class="ti ti-user-off"></i>沒有符合的學員</div>';
 };
 
-window.quickLog = function (id) {
-  showTab('logclass');
-  setTimeout(() => { $('log-sel').value = id; updateLogInfo(); }, 80);
-};
+window.quickLog = function(id) { showTab('logclass'); setTimeout(() => { $('log-sel').value = id; updateLogInfo(); }, 80); };
 
-window.delStudent = async function (id) {
+window.delStudent = async function(id) {
   if (!confirm('確定刪除此學員？')) return;
-  await deleteDoc(doc(db, 'students', id));
-  students = students.filter(s => s.id !== id);
-  renderStudents('');
-  toast('學員已刪除');
+  await remove(ref(db, 'students/' + id));
+  delete students[id];
+  renderStudents(''); toast('學員已刪除');
 };
 
-// ── Log tab ──
 function renderLogTab() {
   const ms = myStudents();
   const sel = $('log-sel');
@@ -449,58 +378,61 @@ function renderLogTab() {
   sel.innerHTML = '<option value="">-- 請選擇學員 --</option>' + ms.map(s => `<option value="${s.id}">${s.name}（剩 ${rem(s)} 堂）</option>`).join('');
   if (prev) sel.value = prev;
   updateLogInfo();
-  const myLogs = classLogs.filter(l => l.coachId === currentUser.id).slice(0, 12);
+  const myLogs = objArr(classLogs).filter(l => l.coachId === currentUser.id)
+    .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 12);
   $('my-logs').innerHTML = myLogs.length ? myLogs.map(l => {
-    const s = students.find(st => st.id === l.studentId);
+    const s = students[l.studentId];
     return `<div class="log-item"><div class="ldot"></div><div class="lbody"><div class="ltitle">${s ? s.name : '—'}&ensp;<span style="font-weight:400;color:var(--text2)">${l.note || '無備註'}</span></div><div class="lmeta">${l.date} ${l.time}</div></div><button class="btn-sm btn-del" onclick="cancelLog('${l.id}','${l.studentId}')"><i class="ti ti-x"></i>取消</button></div>`;
   }).join('') : '<div class="empty" style="padding:1rem"><i class="ti ti-calendar-off"></i>尚無紀錄</div>';
 }
 
-window.updateLogInfo = function () {
+window.updateLogInfo = function() {
   const id = $('log-sel').value;
   const info = $('log-info');
   if (!id) { info.style.display = 'none'; return; }
-  const s = students.find(st => st.id === id);
+  const s = students[id];
   if (!s) { info.style.display = 'none'; return; }
   const r = rem(s);
   info.style.display = 'block';
   info.innerHTML = `<strong>${s.name}</strong>&ensp;剩餘 <span style="color:${r <= 2 ? 'var(--red)' : 'var(--green)'};font-weight:700">${r} 堂</span>（共 ${s.totalSessions} 堂，已上 ${s.usedSessions} 堂）`;
 };
 
-window.logClass = async function () {
+window.logClass = async function() {
   const studentId = $('log-sel').value;
   if (!studentId) { toast('請選擇學員', true); return; }
   const date = $('log-date').value, time = $('log-time').value;
   if (!date || !time) { toast('請填寫日期與時間', true); return; }
-  const s = students.find(st => st.id === studentId);
+  const s = students[studentId];
   if (rem(s) <= 0) { toast('課堂已用完，請先繳費', true); return; }
   const btn = document.querySelector('#page-logclass .btn-add');
   btn.disabled = true;
   try {
     s.usedSessions = (s.usedSessions || 0) + 1;
-    await updateDoc(doc(db, 'students', studentId), { usedSessions: s.usedSessions });
+    await update(ref(db, 'students/' + studentId), { usedSessions: s.usedSessions });
     const note = $('log-note').value.trim();
-    const logDoc = await addDoc(collection(db, 'classLogs'), { studentId, coachId: currentUser.id, date, time, note, createdAt: serverTimestamp() });
-    classLogs.unshift({ id: logDoc.id, studentId, coachId: currentUser.id, date, time, note });
+    const newRef = push(ref(db, 'classLogs'));
+    const logData = { studentId, coachId: currentUser.id, date, time, note };
+    await set(newRef, logData);
+    classLogs[newRef.key] = logData;
     toast(`${s.name} 登記完成，剩餘 ${rem(s)} 堂`);
     $('log-note').value = '';
     renderLogTab(); updateLogInfo();
   } finally { btn.disabled = false; }
 };
 
-window.cancelLog = async function (logId, studentId) {
+window.cancelLog = async function(logId, studentId) {
   if (!confirm('確定取消這筆紀錄？這會還原一堂課。')) return;
-  const s = students.find(st => st.id === studentId);
-  if (s) { s.usedSessions = Math.max(0, (s.usedSessions || 0) - 1); await updateDoc(doc(db, 'students', studentId), { usedSessions: s.usedSessions }); }
-  await deleteDoc(doc(db, 'classLogs', logId));
-  classLogs = classLogs.filter(l => l.id !== logId);
+  const s = students[studentId];
+  if (s) { s.usedSessions = Math.max(0, (s.usedSessions || 0) - 1); await update(ref(db, 'students/' + studentId), { usedSessions: s.usedSessions }); }
+  await remove(ref(db, 'classLogs/' + logId));
+  delete classLogs[logId];
   renderLogTab(); toast('紀錄已取消');
 };
 
-// ── Payments ──
 function renderPayments() {
-  $('payment-list').innerHTML = payments.length ? payments.map(p => {
-    const s = students.find(st => st.id === p.studentId);
+  const list = objArr(payments).sort((a, b) => b.date.localeCompare(a.date));
+  $('payment-list').innerHTML = list.length ? list.map(p => {
+    const s = students[p.studentId];
     return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
       <div><div style="font-size:14px;font-weight:600">${s ? s.name : '—'}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${p.date}&ensp;${p.note || ''}</div></div>
       <div style="text-align:right;flex-shrink:0"><div style="font-size:16px;font-weight:700;color:var(--green)">NT$ ${Number(p.amount).toLocaleString()}</div><div style="font-size:12px;color:var(--text2)">+${p.sessions} 堂</div></div>
@@ -508,14 +440,13 @@ function renderPayments() {
   }).join('') : '<div class="empty"><i class="ti ti-receipt-off"></i>尚無繳費紀錄</div>';
 }
 
-// ── Coaches ──
 function renderCoaches() {
-  $('coaches-list').innerHTML = coaches.map(c => `<div class="card"><div class="scard-row">
+  $('coaches-list').innerHTML = objArr(coaches).map(c => `<div class="card"><div class="scard-row">
     <div class="avatar cavatar">${c.name[0]}</div>
     <div class="sinfo">
       <div class="sname">${c.name}&ensp;<span class="badge ${c.role === 'admin' ? 'b-amber' : 'b-purple'}">${c.role === 'admin' ? '總教練' : '教練'}</span></div>
       <div class="smeta">帳號：${c.username}&ensp;密碼：${c.password}</div>
-      <div class="smeta">負責學員：${students.filter(s => s.coachId === c.id).length} 位</div>
+      <div class="smeta">負責學員：${objArr(students).filter(s => s.coachId === c.id).length} 位</div>
     </div>
     <div class="acts">
       <button class="btn-sm" onclick="openModal('edit-coach','${c.id}')"><i class="ti ti-edit"></i></button>
@@ -524,41 +455,36 @@ function renderCoaches() {
   </div></div>`).join('');
 }
 
-window.delCoach = async function (id) {
+window.delCoach = async function(id) {
   if (!confirm('確定刪除此教練？')) return;
-  await deleteDoc(doc(db, 'coaches', id));
-  coaches = coaches.filter(c => c.id !== id);
-  students.forEach(async s => { if (s.coachId === id) { s.coachId = ''; await updateDoc(doc(db, 'students', s.id), { coachId: '' }); } });
+  await remove(ref(db, 'coaches/' + id));
+  delete coaches[id];
+  objArr(students).forEach(async s => { if (s.coachId === id) { students[s.id].coachId = ''; await update(ref(db, 'students/' + s.id), { coachId: '' }); } });
   renderCoaches(); toast('教練已刪除');
 };
 
-// ── Modals ──
-window.openModal = function (type, id) {
-  const overlay = $('overlay');
-  const modal = $('modal');
+window.openModal = function(type, id) {
+  const overlay = $('overlay'), modal = $('modal');
   overlay.classList.add('open');
+  const coachOpts = (sel) => objArr(coaches).filter(c => c.role === 'coach').map(c => `<option value="${c.id}" ${c.id === sel ? 'selected' : ''}>${c.name}</option>`).join('');
 
   if (type === 'add-student') {
-    const coachOpts = coaches.filter(c => c.role === 'coach').map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     modal.innerHTML = `<div class="mhead">新增學員<button class="mclose" onclick="closeModal()">×</button></div>
       <div class="frow"><div class="ff"><label>姓名 *</label><input id="mn" placeholder="學員姓名"></div><div class="ff"><label>電話</label><input id="mp" placeholder="09xxxxxxxx"></div></div>
       <div class="frow"><div class="ff"><label>購買堂數 *</label><input type="number" id="ms" min="1" value="10"></div><div class="ff"><label>加入日期</label><input type="date" id="md" value="${new Date().toISOString().slice(0,10)}"></div></div>
-      <div class="ff"><label>負責教練</label><select id="mc">${coachOpts}</select></div>
+      <div class="ff"><label>負責教練</label><select id="mc">${coachOpts('')}</select></div>
       <div class="ff"><label>備註</label><input id="mk" placeholder="選填"></div>
       <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitAddStudent()">新增</button></div>`;
   }
-
   if (type === 'edit-student') {
-    const s = students.find(st => st.id === id);
-    const coachOpts = coaches.filter(c => c.role === 'coach').map(c => `<option value="${c.id}" ${c.id === s.coachId ? 'selected' : ''}>${c.name}</option>`).join('');
+    const s = students[id];
     modal.innerHTML = `<div class="mhead">編輯學員：${s.name}<button class="mclose" onclick="closeModal()">×</button></div>
       <div class="frow"><div class="ff"><label>姓名</label><input id="mn" value="${s.name}"></div><div class="ff"><label>電話</label><input id="mp" value="${s.phone || ''}"></div></div>
       <div class="frow"><div class="ff"><label>總堂數</label><input type="number" id="mt" value="${s.totalSessions}" min="0"></div><div class="ff"><label>已上堂數</label><input type="number" id="mu" value="${s.usedSessions}" min="0"></div></div>
-      <div class="ff"><label>負責教練</label><select id="mc">${coachOpts}</select></div>
+      <div class="ff"><label>負責教練</label><select id="mc">${coachOpts(s.coachId)}</select></div>
       <div class="ff"><label>備註</label><input id="mk" value="${s.notes || ''}"></div>
       <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitEditStudent('${id}')">儲存</button></div>`;
   }
-
   if (type === 'add-payment') {
     const opts = myStudents().map(s => `<option value="${s.id}">${s.name}（剩 ${rem(s)} 堂）</option>`).join('');
     modal.innerHTML = `<div class="mhead">新增繳費<button class="mclose" onclick="closeModal()">×</button></div>
@@ -567,16 +493,14 @@ window.openModal = function (type, id) {
       <div class="frow"><div class="ff"><label>繳費日期</label><input type="date" id="md2" value="${new Date().toISOString().slice(0,10)}"></div><div class="ff"><label>備註</label><input id="mk2" placeholder="選填"></div></div>
       <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitPayment()">確認繳費</button></div>`;
   }
-
   if (type === 'add-coach') {
     modal.innerHTML = `<div class="mhead">新增教練<button class="mclose" onclick="closeModal()">×</button></div>
       <div class="frow"><div class="ff"><label>姓名 *</label><input id="cn" placeholder="教練姓名"></div><div class="ff"><label>帳號 *</label><input id="cu" placeholder="登入帳號"></div></div>
       <div class="ff"><label>密碼 *</label><input id="cpw" placeholder="登入密碼"></div>
       <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitAddCoach()">新增</button></div>`;
   }
-
   if (type === 'edit-coach') {
-    const c = coaches.find(co => co.id === id);
+    const c = coaches[id];
     modal.innerHTML = `<div class="mhead">編輯教練：${c.name}<button class="mclose" onclick="closeModal()">×</button></div>
       <div class="frow"><div class="ff"><label>姓名</label><input id="cn" value="${c.name}"></div><div class="ff"><label>帳號</label><input id="cu" value="${c.username}"></div></div>
       <div class="ff"><label>密碼</label><input id="cpw" value="${c.password}"></div>
@@ -587,50 +511,53 @@ window.openModal = function (type, id) {
 window.closeModal = () => $('overlay').classList.remove('open');
 window.closeOutside = e => { if (e.target === $('overlay')) closeModal(); };
 
-window.submitAddStudent = async function () {
+window.submitAddStudent = async function() {
   const name = $('mn').value.trim(), sessions = parseInt($('ms').value) || 0;
   if (!name || !sessions) { toast('請填寫姓名與堂數', true); return; }
   const data = { name, phone: $('mp').value.trim(), totalSessions: sessions, usedSessions: 0, coachId: $('mc').value, joinDate: $('md').value, notes: $('mk').value.trim() };
-  const ref = await addDoc(collection(db, 'students'), data);
-  students.push({ id: ref.id, ...data });
+  const newRef = push(ref(db, 'students'));
+  await set(newRef, data);
+  students[newRef.key] = data;
   closeModal(); renderStudents(''); toast(`${name} 已新增`);
 };
 
-window.submitEditStudent = async function (id) {
-  const s = students.find(st => st.id === id);
-  const data = { name: $('mn').value.trim() || s.name, phone: $('mp').value.trim(), totalSessions: parseInt($('mt').value) || s.totalSessions, usedSessions: parseInt($('mu').value) || 0, coachId: $('mc').value, notes: $('mk').value.trim() };
-  await updateDoc(doc(db, 'students', id), data);
-  Object.assign(s, data);
+window.submitEditStudent = async function(id) {
+  const s = students[id];
+  const data = { name: $('mn').value.trim() || s.name, phone: $('mp').value.trim(), totalSessions: parseInt($('mt').value) || s.totalSessions, usedSessions: parseInt($('mu').value) || 0, coachId: $('mc').value, notes: $('mk').value.trim(), joinDate: s.joinDate || '' };
+  await update(ref(db, 'students/' + id), data);
+  students[id] = { ...s, ...data };
   closeModal(); renderStudents(''); toast('學員資料已更新');
 };
 
-window.submitPayment = async function () {
+window.submitPayment = async function() {
   const studentId = $('ms2').value, sessions = parseInt($('mss').value) || 0, amount = parseInt($('ma').value) || 0;
   if (!studentId || !sessions || !amount) { toast('請填寫必填欄位', true); return; }
-  const s = students.find(st => st.id === studentId);
+  const s = students[studentId];
   s.totalSessions = (s.totalSessions || 0) + sessions;
-  await updateDoc(doc(db, 'students', studentId), { totalSessions: s.totalSessions });
+  await update(ref(db, 'students/' + studentId), { totalSessions: s.totalSessions });
   const pData = { studentId, sessions, amount, date: $('md2').value, note: $('mk2').value.trim() };
-  const ref = await addDoc(collection(db, 'payments'), pData);
-  payments.unshift({ id: ref.id, ...pData });
+  const newRef = push(ref(db, 'payments'));
+  await set(newRef, pData);
+  payments[newRef.key] = pData;
   closeModal(); renderPayments(); toast(`${s.name} 繳費成功，新增 ${sessions} 堂`);
 };
 
-window.submitAddCoach = async function () {
+window.submitAddCoach = async function() {
   const name = $('cn').value.trim(), username = $('cu').value.trim(), password = $('cpw').value.trim();
   if (!name || !username || !password) { toast('請填寫所有欄位', true); return; }
-  if (coaches.find(c => c.username === username)) { toast('帳號已存在', true); return; }
+  if (objArr(coaches).find(c => c.username === username)) { toast('帳號已存在', true); return; }
   const data = { name, username, password, role: 'coach' };
-  const ref = await addDoc(collection(db, 'coaches'), data);
-  coaches.push({ id: ref.id, ...data });
+  const newRef = push(ref(db, 'coaches'));
+  await set(newRef, data);
+  coaches[newRef.key] = data;
   closeModal(); renderCoaches(); toast(`${name} 已新增`);
 };
 
-window.submitEditCoach = async function (id) {
-  const c = coaches.find(co => co.id === id);
+window.submitEditCoach = async function(id) {
+  const c = coaches[id];
   const data = { name: $('cn').value.trim() || c.name, username: $('cu').value.trim() || c.username, password: $('cpw').value.trim() || c.password };
-  await updateDoc(doc(db, 'coaches', id), data);
-  Object.assign(c, data);
+  await update(ref(db, 'coaches/' + id), data);
+  coaches[id] = { ...c, ...data };
   closeModal(); renderCoaches(); toast('教練資料已更新');
 };
 </script>
