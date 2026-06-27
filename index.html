@@ -3,207 +3,391 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教練課程管理系統</title>
+<title>Howfun 乒乓俱樂部</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;
-  --bg:#F7F8FA;--surface:#fff;--border:#E5E7EB;
-  --text:#111;--text2:#6B7280;--text3:#9CA3AF;
-  --red:#E24B4A;--amber:#BA7517;--amber-bg:#FAEEDA;
-  --radius:10px;--radius-lg:14px;
+  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
+  --bg:#f5f5f5;--surface:#fff;--border:#e0e0e0;
+  --text:#212121;--text2:#757575;--text3:#bdbdbd;
+  --red:#d32f2f;--green:#2e7d32;--amber:#f57c00;
+  --sidebar:260px;--radius:8px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* Loading */
 #loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
-.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#login-screen{min-height:100vh;display:none;align-items:center;justify-content:center;padding:1rem}
-.login-wrap{width:100%;max-width:380px}
-.login-logo{width:52px;height:52px;background:var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;color:#fff;font-size:26px}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem}
-.login-title{text-align:center;font-size:20px;font-weight:600;margin-bottom:.25rem}
-.login-sub{text-align:center;font-size:13px;color:var(--text2);margin-bottom:1.5rem}
-.field{margin-bottom:1rem}
-.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:5px;font-weight:500}
-.field input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
-.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.12)}
-.btn-primary{width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;margin-top:.25rem}
-.btn-primary:hover{background:var(--green-dark)}
-.err{color:var(--red);font-size:13px;text-align:center;margin-top:.75rem;display:none}
-#app{display:none;flex-direction:column;min-height:100vh}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.topbar-l{display:flex;align-items:center;gap:10px}
-.tlogo{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
-.ttitle{font-size:15px;font-weight:600}
-.topbar-r{display:flex;align-items:center;gap:8px}
-.ubadge{font-size:12px;padding:4px 10px;background:var(--bg);border-radius:20px;color:var(--text2);border:1px solid var(--border)}
-.btn-out{font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;color:var(--text)}
-.nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 .5rem}
-.nav::-webkit-scrollbar{display:none}
-.ntab{padding:13px 14px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:5px;font-weight:500}
-.ntab.active{color:var(--green);border-bottom-color:var(--green)}
-.ntab i{font-size:16px}
-.page{padding:1.25rem;max-width:860px;margin:0 auto;width:100%;display:none}
+
+/* Login */
+#login-screen{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--bg)}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;width:100%;max-width:360px;margin:1rem}
+.login-logo{text-align:center;margin-bottom:1.5rem}
+.login-logo-icon{width:56px;height:56px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;color:#fff;font-size:28px}
+.login-logo h1{font-size:18px;font-weight:700;color:var(--text)}
+.login-logo p{font-size:12px;color:var(--text2);margin-top:2px}
+.lf{margin-bottom:.875rem}
+.lf label{display:block;font-size:13px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.lf input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;outline:none;background:#fff;color:var(--text)}
+.lf input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,115,232,.12)}
+.btn-login{width:100%;padding:11px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;margin-top:.25rem}
+.btn-login:hover{background:var(--primary-dark)}
+.login-err{color:var(--red);font-size:13px;text-align:center;margin-top:.75rem;display:none}
+
+/* App Layout */
+#app{display:none;min-height:100vh}
+.topbar{position:fixed;top:0;left:0;right:0;height:48px;background:var(--primary);color:#fff;display:flex;align-items:center;padding:0 1rem;z-index:100;gap:12px}
+.topbar-menu-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;display:none;padding:4px;line-height:1}
+.topbar-title{font-size:15px;font-weight:700;flex:1}
+.topbar-user{font-size:13px;opacity:.9}
+.btn-toplogout{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.btn-toplogout:hover{background:rgba(255,255,255,.3)}
+
+/* Sidebar */
+.sidebar{position:fixed;top:48px;left:0;bottom:0;width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:90;transition:transform .25s}
+.sidebar-section{border-bottom:1px solid var(--border)}
+.sidebar-group-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;user-select:none;text-transform:uppercase;letter-spacing:.5px}
+.sidebar-group-header:hover{background:var(--bg)}
+.sidebar-group-header i.arrow{font-size:16px;transition:transform .2s}
+.sidebar-group-header.open i.arrow{transform:rotate(90deg)}
+.sidebar-items{display:none}
+.sidebar-items.open{display:block}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:10px 16px 10px 28px;font-size:14px;color:var(--text);cursor:pointer;border-left:3px solid transparent}
+.sidebar-item:hover{background:var(--primary-light);color:var(--primary)}
+.sidebar-item.active{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary);font-weight:600}
+.sidebar-item i{font-size:17px}
+.sidebar-bottom{padding:12px 0;border-top:1px solid var(--border)}
+
+/* Main content */
+.main{margin-left:var(--sidebar);margin-top:48px;padding:1.5rem;min-height:calc(100vh - 48px)}
+.page{display:none}
 .page.active{display:block}
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
-.sh h2{font-size:17px;font-weight:600}
-.btn-add{padding:8px 14px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600}
-.btn-add:hover{background:var(--green-dark)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
-.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.875rem;text-align:center}
-.snum{font-size:24px;font-weight:700}
-.slabel{font-size:12px;color:var(--text2);margin-top:2px}
-.warn{background:var(--amber-bg);border:1px solid #FAC775;border-radius:var(--radius);padding:10px 14px;margin-bottom:.75rem;display:flex;align-items:center;gap:8px;font-size:13px;color:#633806}
-.warn-red{background:#FCEBEB;border-color:#F7C1C1;color:#791F1F}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:.75rem}
-.scard-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.avatar{width:40px;height:40px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--green-dark);flex-shrink:0}
-.cavatar{background:#EEEDFE;color:#3C3489}
-.sinfo{flex:1;min-width:0}
-.sname{font-size:15px;font-weight:600}
-.smeta{font-size:12px;color:var(--text2);margin-top:2px}
-.sess-box{flex:0 0 auto;text-align:center}
-.sess-num{font-size:20px;font-weight:700;color:var(--green)}
-.sess-lbl{font-size:11px;color:var(--text2)}
-.sess-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:4px;min-width:80px}
-.sess-fill{height:100%;background:var(--green);border-radius:2px}
-.acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.btn-sm{padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:3px;font-weight:500}
-.btn-sm:hover{background:var(--bg)}
-.btn-del{border-color:#fca5a5;color:var(--red)}
-.btn-del:hover{background:#FCEBEB}
-.badge{display:inline-flex;align-items:center;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;margin-left:4px}
-.b-green{background:var(--green-light);color:var(--green-dark)}
-.b-amber{background:var(--amber-bg);color:#633806}
-.b-red{background:#FCEBEB;color:#791F1F}
-.b-purple{background:#EEEDFE;color:#3C3489}
-.search{position:relative;margin-bottom:1rem}
-.search input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
-.search input:focus{border-color:var(--green)}
-.search i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:17px}
-.log-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
-.log-item:last-child{border-bottom:none}
-.ldot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:5px;flex-shrink:0}
-.lbody{flex:1}
-.ltitle{font-size:13px;font-weight:600}
-.lmeta{font-size:12px;color:var(--text2);margin-top:2px}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
-.overlay.open{display:flex}
-.modal{background:#fff;border-radius:var(--radius-lg);padding:1.5rem;width:100%;max-width:460px;max-height:90vh;overflow-y:auto}
-.mhead{font-size:16px;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between}
-.mclose{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);line-height:1}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:480px){.frow{grid-template-columns:1fr}.ttitle{display:none}}
+.page-title{font-size:20px;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
+
+/* Cards & Tables */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:15px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.card-title i{font-size:18px;color:var(--primary)}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.25rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+.stat-num{font-size:26px;font-weight:700;color:var(--primary)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:4px}
+
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 12px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:2px solid var(--border);background:var(--bg)}
+td{padding:10px 12px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.table-wrap{overflow-x:auto}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
+.b-green{background:#e8f5e9;color:var(--green)}
+.b-amber{background:#fff3e0;color:var(--amber)}
+.b-red{background:#ffebee;color:var(--red)}
+.b-blue{background:var(--primary-light);color:var(--primary)}
+.b-gray{background:#f5f5f5;color:#757575}
+
+/* Progress bar */
+.prog-wrap{min-width:80px}
+.prog-bar{height:6px;background:var(--bg);border-radius:3px;margin-top:4px}
+.prog-fill{height:100%;background:var(--primary);border-radius:3px}
+
+/* Buttons */
+.btn{padding:8px 16px;border-radius:var(--radius);font-size:13px;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:6px;border:none}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+.btn-outline:hover{background:var(--primary-light)}
+.btn-danger{background:#fff;color:var(--red);border:1px solid #ef9a9a}
+.btn-danger:hover{background:#ffebee}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#1b5e20}
+
+/* Forms */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
 .ff{margin-bottom:.875rem}
-.ff label{display:block;font-size:13px;color:var(--text2);margin-bottom:5px;font-weight:500}
-.ff input,.ff select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
-.ff input:focus,.ff select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
-.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
-.btn-cancel{padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:14px;font-weight:500}
-.btn-submit{padding:8px 20px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;cursor:pointer;font-weight:600}
-.btn-submit:disabled{opacity:.5;cursor:not-allowed}
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1a1a;color:#f5f5f5;padding:10px 16px;border-radius:var(--radius);font-size:13px;z-index:999;display:none;align-items:center;gap:8px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-weight:500}
+.ff label{display:block;font-size:13px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.ff input,.ff select,.ff textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);outline:none}
+.ff input:focus,.ff select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,115,232,.1)}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius);padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.modal-head{font-size:16px;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);line-height:1}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#323232;color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:999;display:none;align-items:center;gap:8px;max-width:320px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-weight:500}
 .toast.show{display:flex}
-.empty{text-align:center;padding:2rem 1rem;color:var(--text2);font-size:14px}
-.empty i{font-size:36px;color:var(--text3);display:block;margin-bottom:.5rem}
+
+/* Search bar */
+.search-bar{position:relative;margin-bottom:1rem}
+.search-bar input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:#fff;outline:none}
+.search-bar input:focus{border-color:var(--primary)}
+.search-bar i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:17px}
+
+/* Section header */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+
+/* Mobile overlay for sidebar */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:89}
+
+/* Salary card */
+.salary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.salary-info{flex:1}
+.salary-name{font-size:15px;font-weight:600}
+.salary-meta{font-size:12px;color:var(--text2);margin-top:3px}
+.salary-amount{font-size:20px;font-weight:700;color:var(--green);text-align:right}
+.salary-sessions{font-size:12px;color:var(--text2);text-align:right}
+
+/* Empty */
+.empty{text-align:center;padding:3rem 1rem;color:var(--text2)}
+.empty i{font-size:40px;color:var(--text3);display:block;margin-bottom:.75rem}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.open{display:block}
+  .main{margin-left:0}
+  .topbar-menu-btn{display:flex}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
 
+<!-- Loading -->
 <div id="loading-screen">
   <div class="spinner"></div>
   <div style="font-size:13px;color:var(--text2)">連線中…</div>
 </div>
 
+<!-- Login -->
 <div id="login-screen">
-  <div class="login-wrap">
-    <div class="login-logo"><i class="ti ti-whistle"></i></div>
-    <div class="login-card">
-      <div class="login-title">教練課程管理系統</div>
-      <div class="login-sub">請輸入帳號密碼登入</div>
-      <div class="field"><label>帳號</label><input type="text" id="lu" placeholder="輸入帳號"></div>
-      <div class="field"><label>密碼</label><input type="password" id="lp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button class="btn-primary" onclick="doLogin()">登入</button>
-      <div class="err" id="lerr">帳號或密碼錯誤</div>
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon"><i class="ti ti-table-tennis"></i></div>
+      <h1>Howfun 乒乓俱樂部</h1>
+      <p>教練管理系統</p>
     </div>
+    <div class="lf"><label>帳號</label><input type="text" id="lu" placeholder="輸入帳號"></div>
+    <div class="lf"><label>密碼</label><input type="password" id="lp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-login" onclick="doLogin()">登入</button>
+    <div class="login-err" id="lerr">帳號或密碼錯誤，請再試一次</div>
   </div>
 </div>
 
+<!-- App -->
 <div id="app">
+  <!-- Topbar -->
   <div class="topbar">
-    <div class="topbar-l">
-      <div class="tlogo"><i class="ti ti-whistle"></i></div>
-      <div class="ttitle">教練管理系統</div>
-    </div>
-    <div class="topbar-r">
-      <span class="ubadge" id="ubadge"></span>
-      <button class="btn-out" onclick="doLogout()"><i class="ti ti-logout"></i></button>
-    </div>
-  </div>
-  <div class="nav">
-    <button class="ntab active" data-tab="dashboard" onclick="showTab('dashboard')"><i class="ti ti-layout-dashboard"></i>總覽</button>
-    <button class="ntab" data-tab="students" onclick="showTab('students')"><i class="ti ti-users"></i>學員</button>
-    <button class="ntab" data-tab="logclass" onclick="showTab('logclass')"><i class="ti ti-calendar-check"></i>登記上課</button>
-    <button class="ntab" data-tab="payment" onclick="showTab('payment')"><i class="ti ti-credit-card"></i>繳費</button>
-    <button class="ntab admin-tab" data-tab="coaches" onclick="showTab('coaches')"><i class="ti ti-shield-check"></i>教練管理</button>
+    <button class="topbar-menu-btn" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
+    <div class="topbar-title">Howfun 乒乓俱樂部</div>
+    <span class="topbar-user" id="topbar-user"></span>
+    <button class="btn-toplogout" onclick="doLogout()"><i class="ti ti-logout" style="font-size:14px"></i>登出</button>
   </div>
 
-  <div class="page active" id="page-dashboard">
-    <div class="stats" id="stats"></div>
-    <div id="warnings"></div>
-    <div class="card">
-      <div style="font-size:14px;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:6px"><i class="ti ti-history" style="color:var(--green)"></i>最近上課紀錄</div>
-      <div id="recent-logs"></div>
-    </div>
-  </div>
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-  <div class="page" id="page-students">
-    <div class="sh"><h2>學員管理</h2><button class="btn-add" onclick="openModal('add-student')"><i class="ti ti-plus"></i>新增學員</button></div>
-    <div class="search"><i class="ti ti-search"></i><input type="text" placeholder="搜尋姓名或電話…" oninput="renderStudents(this.value)"></div>
-    <div id="students-list"></div>
-  </div>
-
-  <div class="page" id="page-logclass">
-    <h2 style="font-size:17px;font-weight:600;margin-bottom:1rem">登記上課</h2>
-    <div class="card">
-      <div class="ff"><label>選擇學員</label><select id="log-sel" onchange="updateLogInfo()"><option value="">-- 請選擇學員 --</option></select></div>
-      <div id="log-info" style="display:none;background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:.875rem;font-size:13px;border:1px solid var(--border)"></div>
-      <div class="frow">
-        <div class="ff"><label>上課日期</label><input type="date" id="log-date"></div>
-        <div class="ff"><label>上課時間</label><input type="time" id="log-time"></div>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <!-- 教練 -->
+    <div class="sidebar-section">
+      <div class="sidebar-group-header open" onclick="toggleGroup(this)">
+        <span><i class="ti ti-users" style="margin-right:6px;font-size:16px"></i>教練</span>
+        <i class="ti ti-chevron-right arrow"></i>
       </div>
-      <div class="ff"><label>備註（選填）</label><input type="text" id="log-note" placeholder="課程內容…"></div>
-      <button class="btn-add" style="width:100%;justify-content:center;padding:11px" onclick="logClass()"><i class="ti ti-check"></i>確認登記 −1 堂</button>
+      <div class="sidebar-items open">
+        <div class="sidebar-item active" onclick="showPage('students')" data-page="students">
+          <i class="ti ti-user-check"></i>學員管理
+        </div>
+        <div class="sidebar-item" onclick="showPage('salary')" data-page="salary">
+          <i class="ti ti-coin"></i>教練個人薪資
+        </div>
+      </div>
     </div>
-    <div class="card" style="margin-top:.75rem">
-      <div style="font-size:14px;font-weight:600;margin-bottom:.75rem">我的近期紀錄</div>
-      <div id="my-logs"></div>
+    <!-- 課程 -->
+    <div class="sidebar-section">
+      <div class="sidebar-group-header open" onclick="toggleGroup(this)">
+        <span><i class="ti ti-calendar" style="margin-right:6px;font-size:16px"></i>課程</span>
+        <i class="ti ti-chevron-right arrow"></i>
+      </div>
+      <div class="sidebar-items open">
+        <div class="sidebar-item" onclick="showPage('cards')" data-page="cards">
+          <i class="ti ti-credit-card"></i>課程卡管理
+        </div>
+        <div class="sidebar-item" onclick="showPage('checkin')" data-page="checkin">
+          <i class="ti ti-calendar-check"></i>上課簽到
+        </div>
+        <div class="sidebar-item" onclick="showPage('history')" data-page="history">
+          <i class="ti ti-history"></i>課程卡歷史
+        </div>
+      </div>
+    </div>
+    <!-- 底部 -->
+    <div class="sidebar-bottom">
+      <div class="sidebar-item" onclick="showPage('password')" data-page="password">
+        <i class="ti ti-lock"></i>修改密碼
+      </div>
+      <div class="sidebar-item admin-only" onclick="showPage('coaches')" data-page="coaches">
+        <i class="ti ti-shield-check"></i>教練帳號管理
+      </div>
     </div>
   </div>
 
-  <div class="page" id="page-payment">
-    <div class="sh"><h2>繳費記錄</h2><button class="btn-add" onclick="openModal('add-payment')"><i class="ti ti-plus"></i>新增繳費</button></div>
-    <div id="payment-list"></div>
-  </div>
+  <!-- Main -->
+  <div class="main">
 
-  <div class="page" id="page-coaches">
-    <div class="sh"><h2>教練管理</h2><button class="btn-add" onclick="openModal('add-coach')"><i class="ti ti-plus"></i>新增教練</button></div>
-    <div id="coaches-list"></div>
-  </div>
-</div>
+    <!-- 學員管理 -->
+    <div class="page active" id="page-students">
+      <div class="page-title">學員管理</div>
+      <div class="stats-row" id="student-stats"></div>
+      <div class="card">
+        <div class="sec-head">
+          <div class="card-title" style="margin:0"><i class="ti ti-users"></i>學員列表</div>
+          <button class="btn btn-primary" onclick="openModal('add-student')"><i class="ti ti-plus"></i>新增學員</button>
+        </div>
+        <div class="search-bar" style="margin-top:.75rem">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="搜尋學員姓名或電話…" oninput="renderStudents(this.value)">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>姓名</th><th>電話</th><th>負責教練</th><th>課程卡</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="students-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
+    <!-- 教練薪資 -->
+    <div class="page" id="page-salary">
+      <div class="page-title">教練個人薪資</div>
+      <div class="card">
+        <div class="sec-head">
+          <div class="card-title" style="margin:0"><i class="ti ti-calendar-stats"></i>選擇月份</div>
+        </div>
+        <div class="form-grid" style="max-width:320px;margin-top:.5rem">
+          <div class="ff"><label>年份</label><select id="salary-year"></select></div>
+          <div class="ff"><label>月份</label><select id="salary-month">
+            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+          </select></div>
+        </div>
+        <button class="btn btn-primary" onclick="calcSalary()"><i class="ti ti-calculator"></i>計算薪資</button>
+      </div>
+      <div id="salary-result"></div>
+    </div>
+
+    <!-- 課程卡管理 -->
+    <div class="page" id="page-cards">
+      <div class="page-title">課程卡管理</div>
+      <div class="card">
+        <div class="sec-head">
+          <div class="card-title" style="margin:0"><i class="ti ti-credit-card"></i>課程卡列表</div>
+          <button class="btn btn-primary" onclick="openModal('add-card')"><i class="ti ti-plus"></i>新增課程卡</button>
+        </div>
+        <div class="table-wrap" style="margin-top:.75rem">
+          <table>
+            <thead><tr><th>學員</th><th>教練</th><th>購買日期</th><th>購買堂數</th><th>已使用</th><th>剩餘</th><th>金額</th><th>狀態</th></tr></thead>
+            <tbody id="cards-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 上課簽到 -->
+    <div class="page" id="page-checkin">
+      <div class="page-title">上課簽到</div>
+      <div class="card">
+        <div class="ff"><label>選擇學員</label>
+          <select id="ci-student" onchange="updateCheckinInfo()">
+            <option value="">-- 請選擇學員 --</option>
+          </select>
+        </div>
+        <div id="ci-info" style="display:none;background:#f5f5f5;border-radius:var(--radius);padding:10px 14px;margin-bottom:.875rem;font-size:13px;border:1px solid var(--border)"></div>
+        <div class="form-grid">
+          <div class="ff"><label>上課日期</label><input type="date" id="ci-date"></div>
+          <div class="ff"><label>上課時間</label><input type="time" id="ci-time"></div>
+        </div>
+        <div class="ff"><label>課程內容/備註（選填）</label><input type="text" id="ci-note" placeholder="例：反手技術、步伐訓練…"></div>
+        <button class="btn btn-success" onclick="doCheckin()"><i class="ti ti-check"></i>確認簽到 −1 堂</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-clock"></i>今日簽到紀錄</div>
+        <div id="today-logs"></div>
+      </div>
+    </div>
+
+    <!-- 課程卡歷史 -->
+    <div class="page" id="page-history">
+      <div class="page-title">課程卡歷史</div>
+      <div class="card">
+        <div class="search-bar">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="搜尋學員姓名…" oninput="renderHistory(this.value)">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>日期時間</th><th>學員</th><th>教練</th><th>課程內容</th><th>操作</th></tr></thead>
+            <tbody id="history-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 修改密碼 -->
+    <div class="page" id="page-password">
+      <div class="page-title">修改密碼</div>
+      <div class="card" style="max-width:400px">
+        <div class="card-title"><i class="ti ti-lock"></i>變更登入密碼</div>
+        <div class="ff"><label>目前密碼</label><input type="password" id="pw-old" placeholder="輸入目前密碼"></div>
+        <div class="ff"><label>新密碼</label><input type="password" id="pw-new" placeholder="輸入新密碼"></div>
+        <div class="ff"><label>確認新密碼</label><input type="password" id="pw-confirm" placeholder="再次輸入新密碼"></div>
+        <button class="btn btn-primary" onclick="changePassword()"><i class="ti ti-check"></i>更改密碼</button>
+      </div>
+    </div>
+
+    <!-- 教練帳號管理（總教練專屬） -->
+    <div class="page" id="page-coaches">
+      <div class="page-title">教練帳號管理</div>
+      <div class="card">
+        <div class="sec-head">
+          <div class="card-title" style="margin:0"><i class="ti ti-shield-check"></i>教練列表</div>
+          <button class="btn btn-primary" onclick="openModal('add-coach')"><i class="ti ti-plus"></i>新增教練</button>
+        </div>
+        <div class="table-wrap" style="margin-top:.75rem">
+          <table>
+            <thead><tr><th>姓名</th><th>帳號</th><th>角色</th><th>負責學員</th><th>操作</th></tr></thead>
+            <tbody id="coaches-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Modal -->
 <div class="overlay" id="overlay" onclick="closeOutside(event)">
   <div class="modal" id="modal"></div>
 </div>
 <div class="toast" id="toast"><i class="ti ti-check"></i><span id="tmsg"></span></div>
 
 <script type="module">
-// ══════════════════════════════════════════
-// ★ Firebase Realtime Database 設定 ★
-// ══════════════════════════════════════════
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, push, update, remove, child, onValue }
+import { getDatabase, ref, set, get, push, update, remove }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const firebaseConfig = {
@@ -219,346 +403,492 @@ const firebaseConfig = {
 const fireApp = initializeApp(firebaseConfig);
 const db = getDatabase(fireApp);
 
-// helpers
 let currentUser = null;
 const $ = id => document.getElementById(id);
-const uid = () => Math.random().toString(36).slice(2, 10);
-const rem = s => (s.totalSessions || 0) - (s.usedSessions || 0);
+const objArr = obj => obj ? Object.entries(obj).map(([id,v])=>({id,...v})) : [];
+const rem = s => (s.totalSessions||0)-(s.usedSessions||0);
 
-function toast(msg, isErr = false) {
-  const t = $('toast');
-  $('tmsg').textContent = msg;
-  t.style.background = isErr ? '#b91c1c' : '#1a1a1a';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+function toast(msg, isErr=false){
+  const t=$('toast'); $('tmsg').textContent=msg;
+  t.style.background=isErr?'#c62828':'#323232';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-// local cache
-let coaches = {}, students = {}, classLogs = {}, payments = {};
+let coaches={}, students={}, classLogs={}, payments={};
 
-function objArr(obj) { return obj ? Object.entries(obj).map(([id, v]) => ({ id, ...v })) : []; }
-
-async function loadAll() {
-  const snap = await get(ref(db));
-  const d = snap.val() || {};
-  coaches = d.coaches || {};
-  students = d.students || {};
-  classLogs = d.classLogs || {};
-  payments = d.payments || {};
+async function loadAll(){
+  const snap=await get(ref(db));
+  const d=snap.val()||{};
+  coaches=d.coaches||{}; students=d.students||{};
+  classLogs=d.classLogs||{}; payments=d.payments||{};
 }
 
-async function seedIfEmpty() {
-  const snap = await get(ref(db, 'coaches'));
-  if (snap.exists()) return;
-  await set(ref(db, 'coaches'), {
-    'admin': { name: '總教練', username: 'admin', password: 'admin123', role: 'admin' },
-    'c1': { name: '陳教練', username: 'coach1', password: 'coach123', role: 'coach' },
-    'c2': { name: '林教練', username: 'coach2', password: 'coach456', role: 'coach' },
+async function seedIfEmpty(){
+  const snap=await get(ref(db,'coaches'));
+  if(snap.exists()) return;
+  await set(ref(db,'coaches'),{
+    'admin':{name:'總教練',username:'admin',password:'admin123',role:'admin',salaryPerSession:0},
+    'c1':{name:'陳教練',username:'coach1',password:'coach123',role:'coach',salaryPerSession:300},
+    'c2':{name:'林教練',username:'coach2',password:'coach456',role:'coach',salaryPerSession:300},
   });
 }
 
-async function init() {
-  try {
-    await seedIfEmpty();
-    await loadAll();
-    $('loading-screen').style.display = 'none';
-    $('login-screen').style.display = 'flex';
-  } catch(e) {
-    $('loading-screen').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--red)"><i class="ti ti-alert-triangle" style="font-size:32px;display:block;margin-bottom:.5rem"></i>連線失敗：${e.message}</div>`;
+async function init(){
+  try{
+    await seedIfEmpty(); await loadAll();
+    $('loading-screen').style.display='none';
+    $('login-screen').style.display='flex';
+  }catch(e){
+    $('loading-screen').innerHTML=`<div style="text-align:center;padding:2rem;color:var(--red)"><i class="ti ti-alert-triangle" style="font-size:32px;display:block;margin-bottom:.5rem"></i>連線失敗：${e.message}</div>`;
   }
 }
 init();
 
-// LOGIN
-window.doLogin = async function() {
-  const u = $('lu').value.trim(), p = $('lp').value;
-  const coach = objArr(coaches).find(c => c.username === u && c.password === p);
-  if (!coach) { $('lerr').style.display = 'block'; return; }
-  $('lerr').style.display = 'none';
-  currentUser = coach;
-  $('login-screen').style.display = 'none';
-  $('app').style.display = 'flex';
-  $('ubadge').textContent = `${coach.name}（${coach.role === 'admin' ? '總教練' : '教練'}）`;
-  document.querySelectorAll('.admin-tab').forEach(el => el.style.display = coach.role === 'admin' ? '' : 'none');
-  const now = new Date();
-  $('log-date').value = now.toISOString().slice(0, 10);
-  $('log-time').value = now.toTimeString().slice(0, 5);
-  showTab('dashboard');
+// ── Login / Logout ──
+window.doLogin=async function(){
+  const u=$('lu').value.trim(), p=$('lp').value;
+  const coach=objArr(coaches).find(c=>c.username===u&&c.password===p);
+  if(!coach){$('lerr').style.display='block';return;}
+  $('lerr').style.display='none';
+  currentUser=coach;
+  $('login-screen').style.display='none';
+  $('app').style.display='block';
+  $('topbar-user').textContent=`${coach.name}（${coach.role==='admin'?'總教練':'教練'}）`;
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=coach.role==='admin'?'':'none');
+  const now=new Date();
+  $('ci-date').value=now.toISOString().slice(0,10);
+  $('ci-time').value=now.toTimeString().slice(0,5);
+  const yr=$('salary-year'); yr.innerHTML='';
+  for(let y=2024;y<=2030;y++){const o=document.createElement('option');o.value=y;o.textContent=y+'年';yr.appendChild(o);}
+  yr.value=now.getFullYear();
+  $('salary-month').value=now.getMonth()+1;
+  showPage('students');
 };
 
-window.doLogout = function() {
-  currentUser = null;
-  $('app').style.display = 'none';
-  $('login-screen').style.display = 'flex';
-  $('lu').value = ''; $('lp').value = '';
+window.doLogout=function(){
+  currentUser=null;
+  $('app').style.display='none';
+  $('login-screen').style.display='flex';
+  $('lu').value='';$('lp').value='';
 };
 
-window.showTab = function(tab) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
-  $('page-' + tab).classList.add('active');
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-  if (tab === 'dashboard') renderDashboard();
-  if (tab === 'students') renderStudents('');
-  if (tab === 'logclass') renderLogTab();
-  if (tab === 'payment') renderPayments();
-  if (tab === 'coaches') renderCoaches();
+// ── Sidebar ──
+window.toggleSidebar=function(){
+  $('sidebar').classList.toggle('open');
+  $('sidebar-overlay').classList.toggle('open');
+};
+window.closeSidebar=function(){
+  $('sidebar').classList.remove('open');
+  $('sidebar-overlay').classList.remove('open');
+};
+window.toggleGroup=function(el){
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
 };
 
-function myStudents() {
-  const all = objArr(students);
-  return currentUser.role === 'admin' ? all : all.filter(s => s.coachId === currentUser.id);
+// ── Pages ──
+window.showPage=function(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  $('page-'+page).classList.add('active');
+  const item=document.querySelector(`[data-page="${page}"]`);
+  if(item) item.classList.add('active');
+  closeSidebar();
+  if(page==='students') renderStudents('');
+  if(page==='salary') renderSalary();
+  if(page==='cards') renderCards();
+  if(page==='checkin') renderCheckin();
+  if(page==='history') renderHistory('');
+  if(page==='coaches') renderCoaches();
+  if(page==='password'){$('pw-old').value='';$('pw-new').value='';$('pw-confirm').value='';}
+};
+
+function myStudents(){
+  const all=objArr(students);
+  return currentUser.role==='admin'?all:all.filter(s=>s.coachId===currentUser.id);
 }
 
-function renderDashboard() {
-  const ms = myStudents();
-  const today = new Date().toISOString().slice(0, 10);
-  const logs = objArr(classLogs);
-  const todayCount = logs.filter(l => l.date === today).length;
-  const low = ms.filter(s => rem(s) > 0 && rem(s) <= 2);
-  const done = ms.filter(s => rem(s) <= 0);
-  $('stats').innerHTML = `
-    <div class="scard"><div class="snum">${ms.length}</div><div class="slabel">我的學員</div></div>
-    <div class="scard"><div class="snum">${todayCount}</div><div class="slabel">今日課堂</div></div>
-    <div class="scard"><div class="snum">${low.length}</div><div class="slabel">即將用完</div></div>
-    <div class="scard"><div class="snum">${done.length}</div><div class="slabel">課堂用完</div></div>`;
-  let w = '';
-  low.forEach(s => { w += `<div class="warn"><i class="ti ti-alert-triangle"></i>${s.name}：剩餘 <strong style="margin:0 2px">${rem(s)}</strong> 堂，請提醒續課</div>`; });
-  done.forEach(s => { w += `<div class="warn warn-red"><i class="ti ti-circle-x"></i>${s.name}：課堂已用完，請繳費</div>`; });
-  $('warnings').innerHTML = w;
-  const recent = logs.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 8);
-  $('recent-logs').innerHTML = recent.length ? recent.map(l => {
-    const s = students[l.studentId];
-    const c = coaches[l.coachId];
-    return `<div class="log-item"><div class="ldot"></div><div class="lbody"><div class="ltitle">${s ? s.name : '—'}&ensp;<span style="font-weight:400;color:var(--text2)">${l.note || '無備註'}</span></div><div class="lmeta">${l.date} ${l.time}&ensp;${c ? c.name : ''}</div></div></div>`;
-  }).join('') : '<div class="empty"><i class="ti ti-calendar-off"></i>尚無紀錄</div>';
-}
-
-window.renderStudents = function(q = '') {
-  const list = myStudents().filter(s => !q || (s.name + (s.phone || '')).includes(q));
-  $('students-list').innerHTML = list.length ? list.map(s => {
-    const r = rem(s);
-    const pct = s.totalSessions ? Math.max(0, Math.round(r / s.totalSessions * 100)) : 0;
-    const coach = coaches[s.coachId];
-    const badge = r <= 0 ? '<span class="badge b-red">課堂用完</span>' : r <= 2 ? '<span class="badge b-amber">即將用完</span>' : '<span class="badge b-green">正常</span>';
-    return `<div class="card"><div class="scard-row">
-      <div class="avatar">${s.name[0]}</div>
-      <div class="sinfo">
-        <div class="sname">${s.name}${badge}</div>
-        <div class="smeta">${s.phone || '無電話'}&ensp;教練：${coach ? coach.name : '未指派'}&ensp;加入：${s.joinDate || ''}</div>
-        ${s.notes ? `<div class="smeta">${s.notes}</div>` : ''}
-      </div>
-      <div class="sess-box">
-        <div class="sess-num">${r}<span style="font-size:13px;color:var(--text2);font-weight:400">/${s.totalSessions}</span></div>
-        <div class="sess-lbl">剩餘堂數</div>
-        <div class="sess-bar"><div class="sess-fill" style="width:${pct}%"></div></div>
-      </div>
-      <div class="acts">
-        <button class="btn-sm" onclick="quickLog('${s.id}')"><i class="ti ti-calendar-plus"></i>登記</button>
-        <button class="btn-sm" onclick="openModal('edit-student','${s.id}')"><i class="ti ti-edit"></i></button>
-        ${currentUser.role === 'admin' ? `<button class="btn-sm btn-del" onclick="delStudent('${s.id}')"><i class="ti ti-trash"></i></button>` : ''}
-      </div>
-    </div></div>`;
-  }).join('') : '<div class="empty"><i class="ti ti-user-off"></i>沒有符合的學員</div>';
+// ── Students ──
+window.renderStudents=function(q=''){
+  const list=myStudents().filter(s=>!q||(s.name+(s.phone||'')).includes(q));
+  // stats
+  const low=list.filter(s=>rem(s)>0&&rem(s)<=2);
+  const done=list.filter(s=>rem(s)<=0);
+  $('student-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${list.length}</div><div class="stat-label">學員總數</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${low.length}</div><div class="stat-label">即將用完</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--red)">${done.length}</div><div class="stat-label">課堂用完</div></div>`;
+  const tbody=$('students-tbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="6" class="empty"><i class="ti ti-user-off"></i>尚無學員</td></tr>`;return;}
+  tbody.innerHTML=list.map(s=>{
+    const r=rem(s);
+    const pct=s.totalSessions?Math.max(0,Math.round(r/s.totalSessions*100)):0;
+    const coach=coaches[s.coachId];
+    const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">正常</span>';
+    return `<tr>
+      <td><strong>${s.name}</strong></td>
+      <td>${s.phone||'—'}</td>
+      <td>${coach?coach.name:'未指派'}</td>
+      <td>
+        <div style="font-size:13px">${r}/${s.totalSessions} 堂</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      </td>
+      <td>${badge}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="goCheckin('${s.id}')"><i class="ti ti-calendar-plus"></i>簽到</button>
+        <button class="btn btn-outline btn-sm" onclick="openModal('edit-student','${s.id}')"><i class="ti ti-edit"></i></button>
+        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="delStudent('${s.id}')"><i class="ti ti-trash"></i></button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
 };
 
-window.quickLog = function(id) { showTab('logclass'); setTimeout(() => { $('log-sel').value = id; updateLogInfo(); }, 80); };
+window.goCheckin=function(id){
+  showPage('checkin');
+  setTimeout(()=>{$('ci-student').value=id;updateCheckinInfo();},80);
+};
 
-window.delStudent = async function(id) {
-  if (!confirm('確定刪除此學員？')) return;
-  await remove(ref(db, 'students/' + id));
+window.delStudent=async function(id){
+  if(!confirm('確定刪除此學員？')) return;
+  await remove(ref(db,'students/'+id));
   delete students[id];
   renderStudents(''); toast('學員已刪除');
 };
 
-function renderLogTab() {
-  const ms = myStudents();
-  const sel = $('log-sel');
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">-- 請選擇學員 --</option>' + ms.map(s => `<option value="${s.id}">${s.name}（剩 ${rem(s)} 堂）</option>`).join('');
-  if (prev) sel.value = prev;
-  updateLogInfo();
-  const myLogs = objArr(classLogs).filter(l => l.coachId === currentUser.id)
-    .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 12);
-  $('my-logs').innerHTML = myLogs.length ? myLogs.map(l => {
-    const s = students[l.studentId];
-    return `<div class="log-item"><div class="ldot"></div><div class="lbody"><div class="ltitle">${s ? s.name : '—'}&ensp;<span style="font-weight:400;color:var(--text2)">${l.note || '無備註'}</span></div><div class="lmeta">${l.date} ${l.time}</div></div><button class="btn-sm btn-del" onclick="cancelLog('${l.id}','${l.studentId}')"><i class="ti ti-x"></i>取消</button></div>`;
-  }).join('') : '<div class="empty" style="padding:1rem"><i class="ti ti-calendar-off"></i>尚無紀錄</div>';
-}
-
-window.updateLogInfo = function() {
-  const id = $('log-sel').value;
-  const info = $('log-info');
-  if (!id) { info.style.display = 'none'; return; }
-  const s = students[id];
-  if (!s) { info.style.display = 'none'; return; }
-  const r = rem(s);
-  info.style.display = 'block';
-  info.innerHTML = `<strong>${s.name}</strong>&ensp;剩餘 <span style="color:${r <= 2 ? 'var(--red)' : 'var(--green)'};font-weight:700">${r} 堂</span>（共 ${s.totalSessions} 堂，已上 ${s.usedSessions} 堂）`;
-};
-
-window.logClass = async function() {
-  const studentId = $('log-sel').value;
-  if (!studentId) { toast('請選擇學員', true); return; }
-  const date = $('log-date').value, time = $('log-time').value;
-  if (!date || !time) { toast('請填寫日期與時間', true); return; }
-  const s = students[studentId];
-  if (rem(s) <= 0) { toast('課堂已用完，請先繳費', true); return; }
-  const btn = document.querySelector('#page-logclass .btn-add');
-  btn.disabled = true;
-  try {
-    s.usedSessions = (s.usedSessions || 0) + 1;
-    await update(ref(db, 'students/' + studentId), { usedSessions: s.usedSessions });
-    const note = $('log-note').value.trim();
-    const newRef = push(ref(db, 'classLogs'));
-    const logData = { studentId, coachId: currentUser.id, date, time, note };
-    await set(newRef, logData);
-    classLogs[newRef.key] = logData;
-    toast(`${s.name} 登記完成，剩餘 ${rem(s)} 堂`);
-    $('log-note').value = '';
-    renderLogTab(); updateLogInfo();
-  } finally { btn.disabled = false; }
-};
-
-window.cancelLog = async function(logId, studentId) {
-  if (!confirm('確定取消這筆紀錄？這會還原一堂課。')) return;
-  const s = students[studentId];
-  if (s) { s.usedSessions = Math.max(0, (s.usedSessions || 0) - 1); await update(ref(db, 'students/' + studentId), { usedSessions: s.usedSessions }); }
-  await remove(ref(db, 'classLogs/' + logId));
-  delete classLogs[logId];
-  renderLogTab(); toast('紀錄已取消');
-};
-
-function renderPayments() {
-  const list = objArr(payments).sort((a, b) => b.date.localeCompare(a.date));
-  $('payment-list').innerHTML = list.length ? list.map(p => {
-    const s = students[p.studentId];
-    return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
-      <div><div style="font-size:14px;font-weight:600">${s ? s.name : '—'}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${p.date}&ensp;${p.note || ''}</div></div>
-      <div style="text-align:right;flex-shrink:0"><div style="font-size:16px;font-weight:700;color:var(--green)">NT$ ${Number(p.amount).toLocaleString()}</div><div style="font-size:12px;color:var(--text2)">+${p.sessions} 堂</div></div>
+// ── Salary ──
+window.renderSalary=function(){};
+window.calcSalary=async function(){
+  const yr=parseInt($('salary-year').value);
+  const mo=parseInt($('salary-month').value);
+  const prefix=`${yr}-${String(mo).padStart(2,'0')}`;
+  const myLogs=objArr(classLogs).filter(l=>l.date&&l.date.startsWith(prefix)&&l.coachId===currentUser.id);
+  const coachData=coaches[currentUser.id];
+  const rate=coachData?.salaryPerSession||0;
+  const total=myLogs.length*rate;
+  const studentList=myLogs.map(l=>{
+    const s=students[l.studentId];
+    return s?s.name:'—';
+  });
+  const studentCounts={};
+  myLogs.forEach(l=>{
+    const s=students[l.studentId];
+    const name=s?s.name:'未知';
+    studentCounts[name]=(studentCounts[name]||0)+1;
+  });
+  $('salary-result').innerHTML=`
+    <div class="card">
+      <div class="card-title"><i class="ti ti-report-money"></i>${yr}年${mo}月 薪資報表</div>
+      <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1rem">
+        <div><div style="font-size:13px;color:var(--text2)">上課堂數</div><div style="font-size:28px;font-weight:700;color:var(--primary)">${myLogs.length} 堂</div></div>
+        <div><div style="font-size:13px;color:var(--text2)">每堂課酬</div><div style="font-size:28px;font-weight:700;color:var(--primary)">NT$ ${rate}</div></div>
+        <div><div style="font-size:13px;color:var(--text2)">本月薪資</div><div style="font-size:28px;font-weight:700;color:var(--green)">NT$ ${total.toLocaleString()}</div></div>
+      </div>
+      <div class="card-title" style="font-size:14px"><i class="ti ti-list"></i>上課明細</div>
+      ${myLogs.length?`<div class="table-wrap"><table>
+        <thead><tr><th>日期</th><th>時間</th><th>學員</th><th>課程內容</th></tr></thead>
+        <tbody>${myLogs.sort((a,b)=>a.date.localeCompare(b.date)).map(l=>{
+          const s=students[l.studentId];
+          return `<tr><td>${l.date}</td><td>${l.time}</td><td>${s?s.name:'—'}</td><td>${l.note||'—'}</td></tr>`;
+        }).join('')}</tbody>
+      </table></div>`:'<div class="empty"><i class="ti ti-calendar-off"></i>本月無上課紀錄</div>'}
     </div>`;
-  }).join('') : '<div class="empty"><i class="ti ti-receipt-off"></i>尚無繳費紀錄</div>';
-}
-
-function renderCoaches() {
-  $('coaches-list').innerHTML = objArr(coaches).map(c => `<div class="card"><div class="scard-row">
-    <div class="avatar cavatar">${c.name[0]}</div>
-    <div class="sinfo">
-      <div class="sname">${c.name}&ensp;<span class="badge ${c.role === 'admin' ? 'b-amber' : 'b-purple'}">${c.role === 'admin' ? '總教練' : '教練'}</span></div>
-      <div class="smeta">帳號：${c.username}&ensp;密碼：${c.password}</div>
-      <div class="smeta">負責學員：${objArr(students).filter(s => s.coachId === c.id).length} 位</div>
-    </div>
-    <div class="acts">
-      <button class="btn-sm" onclick="openModal('edit-coach','${c.id}')"><i class="ti ti-edit"></i></button>
-      ${c.role !== 'admin' ? `<button class="btn-sm btn-del" onclick="delCoach('${c.id}')"><i class="ti ti-trash"></i></button>` : ''}
-    </div>
-  </div></div>`).join('');
-}
-
-window.delCoach = async function(id) {
-  if (!confirm('確定刪除此教練？')) return;
-  await remove(ref(db, 'coaches/' + id));
-  delete coaches[id];
-  objArr(students).forEach(async s => { if (s.coachId === id) { students[s.id].coachId = ''; await update(ref(db, 'students/' + s.id), { coachId: '' }); } });
-  renderCoaches(); toast('教練已刪除');
 };
 
-window.openModal = function(type, id) {
-  const overlay = $('overlay'), modal = $('modal');
+// ── Cards (課程卡) ──
+function renderCards(){
+  const list=currentUser.role==='admin'?objArr(payments):objArr(payments).filter(p=>p.coachId===currentUser.id);
+  const tbody=$('cards-tbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty"><i class="ti ti-credit-card-off"></i>尚無課程卡</td></tr>`;return;}
+  tbody.innerHTML=list.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>{
+    const s=students[p.studentId];
+    const c=coaches[p.coachId];
+    const used=p.usedSessions||0;
+    const r=p.sessions-used;
+    const pct=p.sessions?Math.max(0,Math.round(r/p.sessions*100)):0;
+    const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">有效</span>';
+    return `<tr>
+      <td><strong>${s?s.name:'—'}</strong></td>
+      <td>${c?c.name:'—'}</td>
+      <td>${p.date}</td>
+      <td>${p.sessions} 堂</td>
+      <td>${used} 堂</td>
+      <td><div>${r} 堂</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></td>
+      <td>NT$ ${Number(p.amount||0).toLocaleString()}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+window.openModal=function(type,id){
+  const overlay=$('overlay'),modal=$('modal');
   overlay.classList.add('open');
-  const coachOpts = (sel) => objArr(coaches).filter(c => c.role === 'coach').map(c => `<option value="${c.id}" ${c.id === sel ? 'selected' : ''}>${c.name}</option>`).join('');
+  const coachOpts=(sel)=>objArr(coaches).filter(c=>c.role==='coach').map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
 
-  if (type === 'add-student') {
-    modal.innerHTML = `<div class="mhead">新增學員<button class="mclose" onclick="closeModal()">×</button></div>
-      <div class="frow"><div class="ff"><label>姓名 *</label><input id="mn" placeholder="學員姓名"></div><div class="ff"><label>電話</label><input id="mp" placeholder="09xxxxxxxx"></div></div>
-      <div class="frow"><div class="ff"><label>購買堂數 *</label><input type="number" id="ms" min="1" value="10"></div><div class="ff"><label>加入日期</label><input type="date" id="md" value="${new Date().toISOString().slice(0,10)}"></div></div>
-      <div class="ff"><label>負責教練</label><select id="mc">${coachOpts('')}</select></div>
+  if(type==='add-student'){
+    modal.innerHTML=`<div class="modal-head">新增學員<button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-grid">
+        <div class="ff"><label>姓名 *</label><input id="mn" placeholder="學員姓名"></div>
+        <div class="ff"><label>電話</label><input id="mp" placeholder="09xxxxxxxx"></div>
+      </div>
+      <div class="form-grid">
+        <div class="ff"><label>加入日期</label><input type="date" id="md" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div class="ff"><label>負責教練</label><select id="mc">${coachOpts(currentUser.role==='coach'?currentUser.id:'')}</select></div>
+      </div>
       <div class="ff"><label>備註</label><input id="mk" placeholder="選填"></div>
-      <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitAddStudent()">新增</button></div>`;
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
+        <button class="btn btn-primary" onclick="submitAddStudent()">新增學員</button>
+      </div>`;
   }
-  if (type === 'edit-student') {
-    const s = students[id];
-    modal.innerHTML = `<div class="mhead">編輯學員：${s.name}<button class="mclose" onclick="closeModal()">×</button></div>
-      <div class="frow"><div class="ff"><label>姓名</label><input id="mn" value="${s.name}"></div><div class="ff"><label>電話</label><input id="mp" value="${s.phone || ''}"></div></div>
-      <div class="frow"><div class="ff"><label>總堂數</label><input type="number" id="mt" value="${s.totalSessions}" min="0"></div><div class="ff"><label>已上堂數</label><input type="number" id="mu" value="${s.usedSessions}" min="0"></div></div>
-      <div class="ff"><label>負責教練</label><select id="mc">${coachOpts(s.coachId)}</select></div>
-      <div class="ff"><label>備註</label><input id="mk" value="${s.notes || ''}"></div>
-      <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitEditStudent('${id}')">儲存</button></div>`;
+  if(type==='edit-student'){
+    const s=students[id];
+    modal.innerHTML=`<div class="modal-head">編輯學員：${s.name}<button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-grid">
+        <div class="ff"><label>姓名</label><input id="mn" value="${s.name}"></div>
+        <div class="ff"><label>電話</label><input id="mp" value="${s.phone||''}"></div>
+      </div>
+      <div class="form-grid">
+        <div class="ff"><label>總堂數</label><input type="number" id="mt" value="${s.totalSessions||0}" min="0"></div>
+        <div class="ff"><label>已上堂數</label><input type="number" id="mu" value="${s.usedSessions||0}" min="0"></div>
+      </div>
+      <div class="form-grid">
+        <div class="ff"><label>負責教練</label><select id="mc">${coachOpts(s.coachId)}</select></div>
+        <div class="ff"><label>加入日期</label><input type="date" id="md" value="${s.joinDate||''}"></div>
+      </div>
+      <div class="ff"><label>備註</label><input id="mk" value="${s.notes||''}"></div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
+        <button class="btn btn-primary" onclick="submitEditStudent('${id}')">儲存</button>
+      </div>`;
   }
-  if (type === 'add-payment') {
-    const opts = myStudents().map(s => `<option value="${s.id}">${s.name}（剩 ${rem(s)} 堂）</option>`).join('');
-    modal.innerHTML = `<div class="mhead">新增繳費<button class="mclose" onclick="closeModal()">×</button></div>
-      <div class="ff"><label>學員 *</label><select id="ms2"><option value="">-- 請選擇 --</option>${opts}</select></div>
-      <div class="frow"><div class="ff"><label>購買堂數 *</label><input type="number" id="mss" min="1" value="10"></div><div class="ff"><label>金額（NT$）*</label><input type="number" id="ma" min="0" value="3500"></div></div>
-      <div class="frow"><div class="ff"><label>繳費日期</label><input type="date" id="md2" value="${new Date().toISOString().slice(0,10)}"></div><div class="ff"><label>備註</label><input id="mk2" placeholder="選填"></div></div>
-      <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitPayment()">確認繳費</button></div>`;
+  if(type==='add-card'){
+    const stuOpts=myStudents().map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    modal.innerHTML=`<div class="modal-head">新增課程卡<button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="ff"><label>學員 *</label><select id="card-student"><option value="">-- 請選擇 --</option>${stuOpts}</select></div>
+      <div class="form-grid">
+        <div class="ff"><label>購買堂數 *</label><input type="number" id="card-sessions" min="1" value="10"></div>
+        <div class="ff"><label>金額（NT$）</label><input type="number" id="card-amount" min="0" value="3500"></div>
+      </div>
+      <div class="form-grid">
+        <div class="ff"><label>購買日期</label><input type="date" id="card-date" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div class="ff"><label>負責教練</label><select id="card-coach">${coachOpts(currentUser.role==='coach'?currentUser.id:'')}</select></div>
+      </div>
+      <div class="ff"><label>備註</label><input id="card-note" placeholder="選填"></div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
+        <button class="btn btn-primary" onclick="submitAddCard()">新增課程卡</button>
+      </div>`;
   }
-  if (type === 'add-coach') {
-    modal.innerHTML = `<div class="mhead">新增教練<button class="mclose" onclick="closeModal()">×</button></div>
-      <div class="frow"><div class="ff"><label>姓名 *</label><input id="cn" placeholder="教練姓名"></div><div class="ff"><label>帳號 *</label><input id="cu" placeholder="登入帳號"></div></div>
-      <div class="ff"><label>密碼 *</label><input id="cpw" placeholder="登入密碼"></div>
-      <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitAddCoach()">新增</button></div>`;
+  if(type==='add-coach'){
+    modal.innerHTML=`<div class="modal-head">新增教練<button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-grid">
+        <div class="ff"><label>姓名 *</label><input id="cn" placeholder="教練姓名"></div>
+        <div class="ff"><label>帳號 *</label><input id="cu" placeholder="登入帳號"></div>
+      </div>
+      <div class="form-grid">
+        <div class="ff"><label>密碼 *</label><input id="cpw" placeholder="初始密碼"></div>
+        <div class="ff"><label>每堂課酬（NT$）</label><input type="number" id="csal" value="300" min="0"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
+        <button class="btn btn-primary" onclick="submitAddCoach()">新增教練</button>
+      </div>`;
   }
-  if (type === 'edit-coach') {
-    const c = coaches[id];
-    modal.innerHTML = `<div class="mhead">編輯教練：${c.name}<button class="mclose" onclick="closeModal()">×</button></div>
-      <div class="frow"><div class="ff"><label>姓名</label><input id="cn" value="${c.name}"></div><div class="ff"><label>帳號</label><input id="cu" value="${c.username}"></div></div>
-      <div class="ff"><label>密碼</label><input id="cpw" value="${c.password}"></div>
-      <div class="mfoot"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-submit" onclick="submitEditCoach('${id}')">儲存</button></div>`;
+  if(type==='edit-coach'){
+    const c=coaches[id];
+    modal.innerHTML=`<div class="modal-head">編輯教練：${c.name}<button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-grid">
+        <div class="ff"><label>姓名</label><input id="cn" value="${c.name}"></div>
+        <div class="ff"><label>帳號</label><input id="cu" value="${c.username}"></div>
+      </div>
+      <div class="form-grid">
+        <div class="ff"><label>密碼</label><input id="cpw" value="${c.password}"></div>
+        <div class="ff"><label>每堂課酬（NT$）</label><input type="number" id="csal" value="${c.salaryPerSession||0}" min="0"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
+        <button class="btn btn-primary" onclick="submitEditCoach('${id}')">儲存</button>
+      </div>`;
   }
 };
 
-window.closeModal = () => $('overlay').classList.remove('open');
-window.closeOutside = e => { if (e.target === $('overlay')) closeModal(); };
+window.closeModal=()=>$('overlay').classList.remove('open');
+window.closeOutside=e=>{if(e.target===$('overlay'))closeModal();};
 
-window.submitAddStudent = async function() {
-  const name = $('mn').value.trim(), sessions = parseInt($('ms').value) || 0;
-  if (!name || !sessions) { toast('請填寫姓名與堂數', true); return; }
-  const data = { name, phone: $('mp').value.trim(), totalSessions: sessions, usedSessions: 0, coachId: $('mc').value, joinDate: $('md').value, notes: $('mk').value.trim() };
-  const newRef = push(ref(db, 'students'));
-  await set(newRef, data);
-  students[newRef.key] = data;
+window.submitAddStudent=async function(){
+  const name=$('mn').value.trim();
+  if(!name){toast('請填寫姓名',true);return;}
+  const data={name,phone:$('mp').value.trim(),totalSessions:0,usedSessions:0,coachId:$('mc').value,joinDate:$('md').value,notes:$('mk').value.trim()};
+  const newRef=push(ref(db,'students'));
+  await set(newRef,data); students[newRef.key]=data;
   closeModal(); renderStudents(''); toast(`${name} 已新增`);
 };
 
-window.submitEditStudent = async function(id) {
-  const s = students[id];
-  const data = { name: $('mn').value.trim() || s.name, phone: $('mp').value.trim(), totalSessions: parseInt($('mt').value) || s.totalSessions, usedSessions: parseInt($('mu').value) || 0, coachId: $('mc').value, notes: $('mk').value.trim(), joinDate: s.joinDate || '' };
-  await update(ref(db, 'students/' + id), data);
-  students[id] = { ...s, ...data };
+window.submitEditStudent=async function(id){
+  const s=students[id];
+  const data={name:$('mn').value.trim()||s.name,phone:$('mp').value.trim(),totalSessions:parseInt($('mt').value)||0,usedSessions:parseInt($('mu').value)||0,coachId:$('mc').value,joinDate:$('md').value,notes:$('mk').value.trim()};
+  await update(ref(db,'students/'+id),data);
+  students[id]={...s,...data};
   closeModal(); renderStudents(''); toast('學員資料已更新');
 };
 
-window.submitPayment = async function() {
-  const studentId = $('ms2').value, sessions = parseInt($('mss').value) || 0, amount = parseInt($('ma').value) || 0;
-  if (!studentId || !sessions || !amount) { toast('請填寫必填欄位', true); return; }
-  const s = students[studentId];
-  s.totalSessions = (s.totalSessions || 0) + sessions;
-  await update(ref(db, 'students/' + studentId), { totalSessions: s.totalSessions });
-  const pData = { studentId, sessions, amount, date: $('md2').value, note: $('mk2').value.trim() };
-  const newRef = push(ref(db, 'payments'));
-  await set(newRef, pData);
-  payments[newRef.key] = pData;
-  closeModal(); renderPayments(); toast(`${s.name} 繳費成功，新增 ${sessions} 堂`);
+window.submitAddCard=async function(){
+  const studentId=$('card-student').value;
+  const sessions=parseInt($('card-sessions').value)||0;
+  const amount=parseInt($('card-amount').value)||0;
+  if(!studentId||!sessions){toast('請填寫必填欄位',true);return;}
+  const coachId=$('card-coach').value||currentUser.id;
+  const s=students[studentId];
+  s.totalSessions=(s.totalSessions||0)+sessions;
+  await update(ref(db,'students/'+studentId),{totalSessions:s.totalSessions});
+  const pData={studentId,coachId,sessions,usedSessions:0,amount,date:$('card-date').value,note:$('card-note').value.trim()};
+  const newRef=push(ref(db,'payments'));
+  await set(newRef,pData); payments[newRef.key]=pData;
+  closeModal(); renderCards(); toast(`${s.name} 課程卡新增成功，+${sessions} 堂`);
 };
 
-window.submitAddCoach = async function() {
-  const name = $('cn').value.trim(), username = $('cu').value.trim(), password = $('cpw').value.trim();
-  if (!name || !username || !password) { toast('請填寫所有欄位', true); return; }
-  if (objArr(coaches).find(c => c.username === username)) { toast('帳號已存在', true); return; }
-  const data = { name, username, password, role: 'coach' };
-  const newRef = push(ref(db, 'coaches'));
-  await set(newRef, data);
-  coaches[newRef.key] = data;
-  closeModal(); renderCoaches(); toast(`${name} 已新增`);
+window.submitAddCoach=async function(){
+  const name=$('cn').value.trim(),username=$('cu').value.trim(),password=$('cpw').value.trim();
+  if(!name||!username||!password){toast('請填寫所有欄位',true);return;}
+  if(objArr(coaches).find(c=>c.username===username)){toast('帳號已存在',true);return;}
+  const data={name,username,password,role:'coach',salaryPerSession:parseInt($('csal').value)||0};
+  const newRef=push(ref(db,'coaches'));
+  await set(newRef,data); coaches[newRef.key]=data;
+  closeModal(); renderCoaches(); toast(`${name} 帳號已建立`);
 };
 
-window.submitEditCoach = async function(id) {
-  const c = coaches[id];
-  const data = { name: $('cn').value.trim() || c.name, username: $('cu').value.trim() || c.username, password: $('cpw').value.trim() || c.password };
-  await update(ref(db, 'coaches/' + id), data);
-  coaches[id] = { ...c, ...data };
+window.submitEditCoach=async function(id){
+  const c=coaches[id];
+  const data={name:$('cn').value.trim()||c.name,username:$('cu').value.trim()||c.username,password:$('cpw').value.trim()||c.password,salaryPerSession:parseInt($('csal').value)||0};
+  await update(ref(db,'coaches/'+id),data);
+  coaches[id]={...c,...data};
   closeModal(); renderCoaches(); toast('教練資料已更新');
+};
+
+// ── Checkin ──
+function renderCheckin(){
+  const ms=myStudents();
+  const sel=$('ci-student');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">-- 請選擇學員 --</option>'+ms.map(s=>`<option value="${s.id}">${s.name}（剩 ${rem(s)} 堂）</option>`).join('');
+  if(prev) sel.value=prev;
+  updateCheckinInfo();
+  const today=new Date().toISOString().slice(0,10);
+  const todayLogs=objArr(classLogs).filter(l=>l.date===today&&(currentUser.role==='admin'||l.coachId===currentUser.id))
+    .sort((a,b)=>b.time.localeCompare(a.time));
+  $('today-logs').innerHTML=todayLogs.length?`<div class="table-wrap"><table>
+    <thead><tr><th>時間</th><th>學員</th><th>課程內容</th><th>教練</th><th>操作</th></tr></thead>
+    <tbody>${todayLogs.map(l=>{
+      const s=students[l.studentId];
+      const c=coaches[l.coachId];
+      return `<tr><td>${l.time}</td><td>${s?s.name:'—'}</td><td>${l.note||'—'}</td><td>${c?c.name:'—'}</td><td><button class="btn btn-danger btn-sm" onclick="cancelCheckin('${l.id}','${l.studentId}')"><i class="ti ti-x"></i>取消</button></td></tr>`;
+    }).join('')}</tbody>
+  </table></div>`:'<div class="empty"><i class="ti ti-calendar-off"></i>今日尚無簽到紀錄</div>';
+}
+
+window.updateCheckinInfo=function(){
+  const id=$('ci-student').value;
+  const info=$('ci-info');
+  if(!id){info.style.display='none';return;}
+  const s=students[id];
+  if(!s){info.style.display='none';return;}
+  const r=rem(s);
+  info.style.display='block';
+  info.innerHTML=`<strong>${s.name}</strong>&ensp;剩餘 <span style="color:${r<=2?'var(--red)':'var(--green)'};font-weight:700">${r} 堂</span>（共 ${s.totalSessions} 堂，已上 ${s.usedSessions} 堂）`;
+};
+
+window.doCheckin=async function(){
+  const studentId=$('ci-student').value;
+  if(!studentId){toast('請選擇學員',true);return;}
+  const date=$('ci-date').value,time=$('ci-time').value;
+  if(!date||!time){toast('請填寫日期與時間',true);return;}
+  const s=students[studentId];
+  if(rem(s)<=0){toast('課堂已用完，請先購買課程卡',true);return;}
+  s.usedSessions=(s.usedSessions||0)+1;
+  await update(ref(db,'students/'+studentId),{usedSessions:s.usedSessions});
+  // 更新課程卡已使用數
+  const card=objArr(payments).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
+  if(card){
+    card.usedSessions=(card.usedSessions||0)+1;
+    await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
+  }
+  const note=$('ci-note').value.trim();
+  const logData={studentId,coachId:currentUser.id,date,time,note};
+  const newRef=push(ref(db,'classLogs'));
+  await set(newRef,logData); classLogs[newRef.key]=logData;
+  toast(`${s.name} 簽到成功，剩餘 ${rem(s)} 堂`);
+  $('ci-note').value='';
+  renderCheckin(); updateCheckinInfo();
+};
+
+window.cancelCheckin=async function(logId,studentId){
+  if(!confirm('確定取消這筆簽到？將還原一堂課。')) return;
+  const s=students[studentId];
+  if(s){
+    s.usedSessions=Math.max(0,(s.usedSessions||0)-1);
+    await update(ref(db,'students/'+studentId),{usedSessions:s.usedSessions});
+    const card=objArr(payments).find(p=>p.studentId===studentId&&(p.usedSessions||0)>0);
+    if(card){card.usedSessions=Math.max(0,(card.usedSessions||0)-1);await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});}
+  }
+  await remove(ref(db,'classLogs/'+logId));
+  delete classLogs[logId];
+  renderCheckin(); toast('簽到已取消');
+};
+
+// ── History ──
+window.renderHistory=function(q=''){
+  const logs=objArr(classLogs)
+    .filter(l=>currentUser.role==='admin'||l.coachId===currentUser.id)
+    .filter(l=>{if(!q) return true; const s=students[l.studentId]; return s&&s.name.includes(q);})
+    .sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const tbody=$('history-tbody');
+  if(!logs.length){tbody.innerHTML=`<tr><td colspan="5" class="empty"><i class="ti ti-history"></i>尚無紀錄</td></tr>`;return;}
+  tbody.innerHTML=logs.map(l=>{
+    const s=students[l.studentId];
+    const c=coaches[l.coachId];
+    return `<tr>
+      <td>${l.date} ${l.time}</td>
+      <td>${s?s.name:'—'}</td>
+      <td>${c?c.name:'—'}</td>
+      <td>${l.note||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="cancelCheckin('${l.id}','${l.studentId}')"><i class="ti ti-x"></i>取消</button></td>
+    </tr>`;
+  }).join('');
+};
+
+// ── Coaches ──
+function renderCoaches(){
+  const tbody=$('coaches-tbody');
+  tbody.innerHTML=objArr(coaches).map(c=>`<tr>
+    <td><strong>${c.name}</strong></td>
+    <td>${c.username}</td>
+    <td><span class="badge ${c.role==='admin'?'b-amber':'b-blue'}">${c.role==='admin'?'總教練':'教練'}</span></td>
+    <td>${objArr(students).filter(s=>s.coachId===c.id).length} 位</td>
+    <td>
+      <button class="btn btn-outline btn-sm" onclick="openModal('edit-coach','${c.id}')"><i class="ti ti-edit"></i></button>
+      ${c.role!=='admin'?`<button class="btn btn-danger btn-sm" onclick="delCoach('${c.id}')"><i class="ti ti-trash"></i></button>`:''}
+    </td>
+  </tr>`).join('');
+}
+
+window.delCoach=async function(id){
+  if(!confirm('確定刪除此教練帳號？')) return;
+  await remove(ref(db,'coaches/'+id)); delete coaches[id];
+  renderCoaches(); toast('教練已刪除');
+};
+
+// ── Password ──
+window.changePassword=async function(){
+  const oldPw=$('pw-old').value,newPw=$('pw-new').value,confirm=$('pw-confirm').value;
+  if(!oldPw||!newPw||!confirm){toast('請填寫所有欄位',true);return;}
+  if(oldPw!==currentUser.password){toast('目前密碼錯誤',true);return;}
+  if(newPw!==confirm){toast('新密碼與確認密碼不一致',true);return;}
+  if(newPw.length<4){toast('密碼至少需要4個字元',true);return;}
+  await update(ref(db,'coaches/'+currentUser.id),{password:newPw});
+  currentUser.password=newPw;
+  coaches[currentUser.id].password=newPw;
+  $('pw-old').value='';$('pw-new').value='';$('pw-confirm').value='';
+  toast('密碼已更新！');
 };
 </script>
 </body>
