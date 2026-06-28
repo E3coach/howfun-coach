@@ -321,6 +321,13 @@ tr:hover td{background:#fafafa}
           <div class="ff"><label>上課日期</label><input type="date" id="ci-date"></div>
           <div class="ff"><label>上課時間</label><input type="time" id="ci-time"></div>
         </div>
+        <div class="ff"><label>課程類型 *</label>
+          <select id="ci-type">
+            <option value="normal60">一般課 60 分鐘</option>
+            <option value="normal90">一般課 90 分鐘</option>
+            <option value="trial30">體驗課 30 分鐘</option>
+          </select>
+        </div>
         <div class="ff"><label>課程內容/備註（選填）</label><input type="text" id="ci-note" placeholder="例：反手技術、步伐訓練…"></div>
         <button class="btn btn-success" onclick="doCheckin()"><i class="ti ti-check"></i>確認簽到 −1 堂</button>
       </div>
@@ -340,7 +347,7 @@ tr:hover td{background:#fafafa}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>日期時間</th><th>學員</th><th>教練</th><th>課程內容</th><th>操作</th></tr></thead>
+            <thead><tr><th>日期時間</th><th>學員</th><th>教練</th><th>課程類型</th><th>課程內容</th><th>操作</th></tr></thead>
             <tbody id="history-tbody"></tbody>
           </table>
         </div>
@@ -380,7 +387,7 @@ tr:hover td{background:#fafafa}
 </div><!-- /app -->
 
 <!-- Modal -->
-<div class="overlay" id="overlay" onclick="closeOutside(event)">
+<div class="overlay" id="overlay">
   <div class="modal" id="modal"></div>
 </div>
 <div class="toast" id="toast"><i class="ti ti-check"></i><span id="tmsg"></span></div>
@@ -427,9 +434,9 @@ async function seedIfEmpty(){
   const snap=await get(ref(db,'coaches'));
   if(snap.exists()) return;
   await set(ref(db,'coaches'),{
-    'admin':{name:'總教練',username:'admin',password:'admin123',role:'admin',salaryPerSession:0},
-    'c1':{name:'陳教練',username:'coach1',password:'coach123',role:'coach',salaryPerSession:300},
-    'c2':{name:'林教練',username:'coach2',password:'coach456',role:'coach',salaryPerSession:300},
+    'admin':{name:'總教練',username:'admin',password:'admin123',role:'admin',rates:{normal60:0,normal90:0,trial30:0}},
+    'c1':{name:'陳教練',username:'coach1',password:'coach123',role:'coach',rates:{normal60:300,normal90:450,trial30:150}},
+    'c2':{name:'林教練',username:'coach2',password:'coach456',role:'coach',rates:{normal60:300,normal90:450,trial30:150}},
   });
 }
 
@@ -563,32 +570,37 @@ window.calcSalary=async function(){
   const prefix=`${yr}-${String(mo).padStart(2,'0')}`;
   const myLogs=objArr(classLogs).filter(l=>l.date&&l.date.startsWith(prefix)&&l.coachId===currentUser.id);
   const coachData=coaches[currentUser.id];
-  const rate=coachData?.salaryPerSession||0;
-  const total=myLogs.length*rate;
-  const studentList=myLogs.map(l=>{
-    const s=students[l.studentId];
-    return s?s.name:'—';
-  });
-  const studentCounts={};
+  const rates=coachData?.rates||{normal60:0,normal90:0,trial30:0};
+  const typeLabel={normal60:'一般課 60分',normal90:'一般課 90分',trial30:'體驗課 30分'};
+  let totalPay=0;
+  const typeCounts={normal60:0,normal90:0,trial30:0};
   myLogs.forEach(l=>{
-    const s=students[l.studentId];
-    const name=s?s.name:'未知';
-    studentCounts[name]=(studentCounts[name]||0)+1;
+    const t=l.sessionType||'normal60';
+    typeCounts[t]=(typeCounts[t]||0)+1;
+    totalPay+=(rates[t]||0);
   });
   $('salary-result').innerHTML=`
     <div class="card">
       <div class="card-title"><i class="ti ti-report-money"></i>${yr}年${mo}月 薪資報表</div>
-      <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1rem">
-        <div><div style="font-size:13px;color:var(--text2)">上課堂數</div><div style="font-size:28px;font-weight:700;color:var(--primary)">${myLogs.length} 堂</div></div>
-        <div><div style="font-size:13px;color:var(--text2)">每堂課酬</div><div style="font-size:28px;font-weight:700;color:var(--primary)">NT$ ${rate}</div></div>
-        <div><div style="font-size:13px;color:var(--text2)">本月薪資</div><div style="font-size:28px;font-weight:700;color:var(--green)">NT$ ${total.toLocaleString()}</div></div>
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
+        <div><div style="font-size:13px;color:var(--text2)">總上課堂數</div><div style="font-size:28px;font-weight:700;color:var(--primary)">${myLogs.length} 堂</div></div>
+        <div><div style="font-size:13px;color:var(--text2)">本月薪資</div><div style="font-size:28px;font-weight:700;color:var(--green)">NT$ ${totalPay.toLocaleString()}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.25rem">
+        ${Object.entries(typeCounts).map(([t,cnt])=>`
+          <div class="stat-card" style="text-align:left">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${typeLabel[t]}</div>
+            <div style="font-size:18px;font-weight:700">${cnt} 堂</div>
+            <div style="font-size:12px;color:var(--text2)">× NT$${rates[t]||0} = <strong>NT$${((rates[t]||0)*cnt).toLocaleString()}</strong></div>
+          </div>`).join('')}
       </div>
       <div class="card-title" style="font-size:14px"><i class="ti ti-list"></i>上課明細</div>
       ${myLogs.length?`<div class="table-wrap"><table>
-        <thead><tr><th>日期</th><th>時間</th><th>學員</th><th>課程內容</th></tr></thead>
+        <thead><tr><th>日期</th><th>時間</th><th>學員</th><th>課程類型</th><th>課程內容</th><th>課酬</th></tr></thead>
         <tbody>${myLogs.sort((a,b)=>a.date.localeCompare(b.date)).map(l=>{
           const s=students[l.studentId];
-          return `<tr><td>${l.date}</td><td>${l.time}</td><td>${s?s.name:'—'}</td><td>${l.note||'—'}</td></tr>`;
+          const t=l.sessionType||'normal60';
+          return `<tr><td>${l.date}</td><td>${l.time}</td><td>${s?s.name:'—'}</td><td>${typeLabel[t]}</td><td>${l.note||'—'}</td><td>NT$${rates[t]||0}</td></tr>`;
         }).join('')}</tbody>
       </table></div>`:'<div class="empty"><i class="ti ti-calendar-off"></i>本月無上課紀錄</div>'}
     </div>`;
@@ -685,10 +697,13 @@ window.openModal=function(type,id){
         <div class="ff"><label>姓名 *</label><input id="cn" placeholder="教練姓名"></div>
         <div class="ff"><label>帳號 *</label><input id="cu" placeholder="登入帳號"></div>
       </div>
+      <div class="ff"><label>密碼 *</label><input id="cpw" placeholder="初始密碼"></div>
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px;margin-top:4px">課酬設定（NT$）</div>
       <div class="form-grid">
-        <div class="ff"><label>密碼 *</label><input id="cpw" placeholder="初始密碼"></div>
-        <div class="ff"><label>每堂課酬（NT$）</label><input type="number" id="csal" value="300" min="0"></div>
+        <div class="ff"><label>一般課 60分</label><input type="number" id="csal60" value="300" min="0"></div>
+        <div class="ff"><label>一般課 90分</label><input type="number" id="csal90" value="450" min="0"></div>
       </div>
+      <div class="ff" style="max-width:50%"><label>體驗課 30分</label><input type="number" id="csaltrial" value="150" min="0"></div>
       <div class="modal-foot">
         <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
         <button class="btn btn-primary" onclick="submitAddCoach()">新增教練</button>
@@ -701,10 +716,13 @@ window.openModal=function(type,id){
         <div class="ff"><label>姓名</label><input id="cn" value="${c.name}"></div>
         <div class="ff"><label>帳號</label><input id="cu" value="${c.username}"></div>
       </div>
+      <div class="ff"><label>密碼</label><input id="cpw" value="${c.password}"></div>
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px;margin-top:4px">課酬設定（NT$）</div>
       <div class="form-grid">
-        <div class="ff"><label>密碼</label><input id="cpw" value="${c.password}"></div>
-        <div class="ff"><label>每堂課酬（NT$）</label><input type="number" id="csal" value="${c.salaryPerSession||0}" min="0"></div>
+        <div class="ff"><label>一般課 60分</label><input type="number" id="csal60" value="${c.rates?.normal60||0}" min="0"></div>
+        <div class="ff"><label>一般課 90分</label><input type="number" id="csal90" value="${c.rates?.normal90||0}" min="0"></div>
       </div>
+      <div class="ff" style="max-width:50%"><label>體驗課 30分</label><input type="number" id="csaltrial" value="${c.rates?.trial30||0}" min="0"></div>
       <div class="modal-foot">
         <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
         <button class="btn btn-primary" onclick="submitEditCoach('${id}')">儲存</button>
@@ -713,7 +731,6 @@ window.openModal=function(type,id){
 };
 
 window.closeModal=()=>$('overlay').classList.remove('open');
-window.closeOutside=e=>{if(e.target===$('overlay'))closeModal();};
 
 window.submitAddStudent=async function(){
   const name=$('mn').value.trim();
@@ -751,7 +768,7 @@ window.submitAddCoach=async function(){
   const name=$('cn').value.trim(),username=$('cu').value.trim(),password=$('cpw').value.trim();
   if(!name||!username||!password){toast('請填寫所有欄位',true);return;}
   if(objArr(coaches).find(c=>c.username===username)){toast('帳號已存在',true);return;}
-  const data={name,username,password,role:'coach',salaryPerSession:parseInt($('csal').value)||0};
+  const data={name,username,password,role:'coach',rates:{normal60:parseInt($('csal60').value)||0,normal90:parseInt($('csal90').value)||0,trial30:parseInt($('csaltrial').value)||0}};
   const newRef=push(ref(db,'coaches'));
   await set(newRef,data); coaches[newRef.key]=data;
   closeModal(); renderCoaches(); toast(`${name} 帳號已建立`);
@@ -759,7 +776,7 @@ window.submitAddCoach=async function(){
 
 window.submitEditCoach=async function(id){
   const c=coaches[id];
-  const data={name:$('cn').value.trim()||c.name,username:$('cu').value.trim()||c.username,password:$('cpw').value.trim()||c.password,salaryPerSession:parseInt($('csal').value)||0};
+  const data={name:$('cn').value.trim()||c.name,username:$('cu').value.trim()||c.username,password:$('cpw').value.trim()||c.password,rates:{normal60:parseInt($('csal60').value)||0,normal90:parseInt($('csal90').value)||0,trial30:parseInt($('csaltrial').value)||0}};
   await update(ref(db,'coaches/'+id),data);
   coaches[id]={...c,...data};
   closeModal(); renderCoaches(); toast('教練資料已更新');
@@ -813,7 +830,8 @@ window.doCheckin=async function(){
     await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
   }
   const note=$('ci-note').value.trim();
-  const logData={studentId,coachId:currentUser.id,date,time,note};
+  const sessionType=$('ci-type').value;
+  const logData={studentId,coachId:currentUser.id,date,time,note,sessionType};
   const newRef=push(ref(db,'classLogs'));
   await set(newRef,logData); classLogs[newRef.key]=logData;
   toast(`${s.name} 簽到成功，剩餘 ${rem(s)} 堂`);
@@ -850,6 +868,7 @@ window.renderHistory=function(q=''){
       <td>${l.date} ${l.time}</td>
       <td>${s?s.name:'—'}</td>
       <td>${c?c.name:'—'}</td>
+      <td>${{normal60:'一般課60分',normal90:'一般課90分',trial30:'體驗課30分'}[l.sessionType||'normal60']}</td>
       <td>${l.note||'—'}</td>
       <td><button class="btn btn-danger btn-sm" onclick="cancelCheckin('${l.id}','${l.studentId}')"><i class="ti ti-x"></i>取消</button></td>
     </tr>`;
