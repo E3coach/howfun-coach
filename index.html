@@ -634,7 +634,7 @@ function renderCards(){
 window.openModal=function(type,id){
   const overlay=$('overlay'),modal=$('modal');
   overlay.classList.add('open');
-  const coachOpts=(sel)=>objArr(coaches).filter(c=>c.role==='coach').map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
+  const coachOpts=(sel)=>objArr(coaches).map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
 
   if(type==='add-student'){
     modal.innerHTML=`<div class="modal-head">新增學員<button class="modal-close" onclick="closeModal()">×</button></div>
