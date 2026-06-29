@@ -300,7 +300,7 @@ tr:hover td{background:#fafafa}
         </div>
         <div class="table-wrap" style="margin-top:.75rem">
           <table>
-            <thead><tr><th>學員</th><th>教練</th><th>購買日期</th><th>購買堂數</th><th>已使用</th><th>剩餘</th><th>金額</th><th>狀態</th></tr></thead>
+            <thead><tr><th>學員</th><th>班別</th><th>教練</th><th>購買日期</th><th>購買堂數</th><th>已使用</th><th>剩餘</th><th>金額</th><th>狀態</th></tr></thead>
             <tbody id="cards-tbody"></tbody>
           </table>
         </div>
@@ -677,6 +677,14 @@ window.openModal=function(type,id){
     const stuOpts=myStudents().map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     modal.innerHTML=`<div class="modal-head">新增課程卡<button class="modal-close" onclick="closeModal()">×</button></div>
       <div class="ff"><label>學員 *</label><select id="card-student"><option value="">-- 請選擇 --</option>${stuOpts}</select></div>
+      <div class="ff"><label>班別 *</label><select id="card-class">
+        <option value="個人班">個人班</option>
+        <option value="幼兒班">幼兒班</option>
+        <option value="團體班">團體班</option>
+        <option value="社團">社團</option>
+        <option value="校隊">校隊</option>
+        <option value="其他">其他</option>
+      </select></div>
       <div class="form-grid">
         <div class="ff"><label>購買堂數 *</label><input type="number" id="card-sessions" min="1" value="10"></div>
         <div class="ff"><label>金額（NT$）</label><input type="number" id="card-amount" min="0" value="3500"></div>
@@ -758,7 +766,7 @@ window.submitAddCard=async function(){
   const s=students[studentId];
   s.totalSessions=(s.totalSessions||0)+sessions;
   await update(ref(db,'students/'+studentId),{totalSessions:s.totalSessions});
-  const pData={studentId,coachId,sessions,usedSessions:0,amount,date:$('card-date').value,note:$('card-note').value.trim()};
+  const pData={studentId,coachId,sessions,usedSessions:0,amount,classType:$('card-class').value,date:$('card-date').value,note:$('card-note').value.trim()};
   const newRef=push(ref(db,'payments'));
   await set(newRef,pData); payments[newRef.key]=pData;
   closeModal(); renderCards(); toast(`${s.name} 課程卡新增成功，+${sessions} 堂`);
