@@ -618,10 +618,12 @@ window.calcSalary=async function(){
 
 // ── Cards (課程卡) ──
 function renderCards(){
-  const list=currentUser.role==='admin'?objArr(payments):objArr(payments).filter(p=>p.coachId===currentUser.id);
+  const list=(currentUser.role==='admin'?objArr(payments):objArr(payments).filter(p=>p.coachId===currentUser.id))
+    .filter(p=>!p.hidden)
+    .sort((a,b)=>b.date.localeCompare(a.date));
   const tbody=$('cards-tbody');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty"><i class="ti ti-credit-card-off"></i>尚無課程卡</td></tr>`;return;}
-  tbody.innerHTML=list.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>{
+  tbody.innerHTML=list.map(p=>{
     const s=students[p.studentId];
     const c=coaches[p.coachId];
     const used=p.usedSessions||0;
@@ -629,14 +631,20 @@ function renderCards(){
     const pct=p.sessions?Math.max(0,Math.round(r/p.sessions*100)):0;
     const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">有效</span>';
     return `<tr>
-      <td><strong>${s?s.name:'—'}</strong></td>
-      <td>${c?c.name:'—'}</td>
       <td>${p.date}</td>
-      <td>${p.sessions} 堂</td>
-      <td>${used} 堂</td>
-      <td><div>${r} 堂</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></td>
+      <td><span class="badge b-blue">${p.classType||'—'}</span></td>
+      <td><strong>${s?s.name:'—'}</strong></td>
+      <td>
+        <div style="font-size:14px;font-weight:600">${r} / ${p.sessions} 堂</div>
+        <div class="prog-bar" style="min-width:80px"><div class="prog-fill" style="width:${pct}%"></div></div>
+      </td>
+      <td>${c?c.name:'—'}</td>
       <td>NT$ ${Number(p.amount||0).toLocaleString()}</td>
       <td>${badge}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-danger btn-sm" onclick="hideCard('${p.id}')"><i class="ti ti-eye-off"></i>不顯示</button>
+        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i></button>`:''}
+      </td>
     </tr>`;
   }).join('');
 }
