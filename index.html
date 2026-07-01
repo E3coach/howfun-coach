@@ -530,7 +530,7 @@ window.showPage=function(page){
   if(page==='students') renderStudents('');
   if(page==='salary') renderSalary();
   if(page==='cards') renderCards();
-  if(page==='checkin') renderCheckin();
+  if(page==='checkin'){renderCheckin();}
   if(page==='history') renderHistory('');
   if(page==='coaches') renderCoaches();
   if(page==='password'){$('pw-old').value='';$('pw-new').value='';$('pw-confirm').value='';}
@@ -825,75 +825,127 @@ window.submitEditCoach=async function(id){
 };
 
 // ── Checkin ──
-function renderCheckin(){
-  const ms=myStudents();
-  const sel=$('ci-student');
-  const prev=sel.value;
-  sel.innerHTML='<option value="">-- 請選擇學員 --</option>'+ms.map(s=>`<option value="${s.id}">${s.name}（剩 ${rem(s)} 堂）</option>`).join('');
-  if(prev) sel.value=prev;
-  updateCheckinInfo();
-  const today=new Date().toISOString().slice(0,10);
-  const todayLogs=objArr(classLogs).filter(l=>l.date===today)
-    .sort((a,b)=>b.time.localeCompare(a.time));
-  $('today-logs').innerHTML=todayLogs.length?`<div class="table-wrap"><table>
-    <thead><tr><th>時間</th><th>學員</th><th>課程內容</th><th>教練</th><th>操作</th></tr></thead>
-    <tbody>${todayLogs.map(l=>{
-      const s=students[l.studentId];
-      const c=coaches[l.coachId];
-      return `<tr><td>${l.time}</td><td>${s?s.name:'—'}</td><td>${l.note||'—'}</td><td>${c?c.name:'—'}</td><td><button class="btn btn-danger btn-sm" onclick="cancelCheckin('${l.id}','${l.studentId}')"><i class="ti ti-x"></i>取消</button></td></tr>`;
-    }).join('')}</tbody>
-  </table></div>`:'<div class="empty"><i class="ti ti-calendar-off"></i>今日尚無簽到紀錄</div>';
+function buildTimeOptions(){
+  const opts=[];
+  for(let h=7;h<=23;h++){
+    opts.push(`<option value="${String(h).padStart(2,'0')}:00">${String(h).padStart(2,'0')}:00</option>`);
+    opts.push(`<option value="${String(h).padStart(2,'0')}:30">${String(h).padStart(2,'0')}:30</option>`);
+  }
+  opts.push('<option value="00:00">00:00</option>');
+  return opts.join('');
 }
 
-window.updateCheckinInfo=function(){
-  const id=$('ci-student').value;
-  const info=$('ci-info');
-  if(!id){info.style.display='none';return;}
+function renderCheckin(){
+  // build time selects
+  const startSel=$('ci-start'), endSel=$('ci-end');
+  if(!startSel.options.length){
+    startSel.innerHTML=buildTimeOptions();
+    endSel.innerHTML=buildTimeOptions();
+    startSel.value='07:00'; endSel.value='08:00';
+  }
+  onClassChange();
+}
+
+window.onClassChange=function(){
+  const cls=$('ci-class').value;
+  // get students in this class from their cards
+  const cardStudentIds=new Set(
+    objArr(payments).filter(p=>!p.hidden&&p.classType===cls).map(p=>p.studentId)
+  );
+  const filtered=objArr(students).filter(s=>cardStudentIds.has(s.id));
+  const allDiv=$('ci-all');
+  // keep already-selected ids
+  const selectedIds=getSelectedIds();
+  allDiv.innerHTML=filtered.filter(s=>!selectedIds.includes(s.id)).map(s=>{
+    const r=rem(s);
+    return `<div data-id="${s.id}" style="padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#f5f5f5;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+      <span>${s.name}</span><span style="color:${r<=2?'var(--red)':'var(--text2)'}">剩${r}堂</span>
+    </div>`;
+  }).join('') || '<div style="padding:1rem;color:var(--text3);font-size:13px;text-align:center">此班別無學員</div>';
+};
+
+window.onStartChange=function(){
+  const start=$('ci-start').value;
+  const [h,m]=start.split(':').map(Number);
+  let eh=h+1, em=m;
+  if(eh>=24) eh=0;
+  $('ci-end').value=`${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}`;
+};
+
+function getSelectedIds(){
+  return Array.from($('ci-selected').querySelectorAll('[data-id]')).map(el=>el.dataset.id);
+}
+
+window.addStudent=function(e){
+  const el=e.target.closest('[data-id]');
+  if(!el) return;
+  const id=el.dataset.id;
   const s=students[id];
-  if(!s){info.style.display='none';return;}
+  if(!s) return;
   const r=rem(s);
-  info.style.display='block';
-  const total=remTotal(s);
-  info.innerHTML=`<strong>${s.name}</strong>&ensp;剩餘 <span style="color:${r<=2?'var(--red)':'var(--green)'};font-weight:700">${r} 堂</span>（共 ${total} 堂）`;
+  $('ci-selected').innerHTML+=`<div data-id="${id}" style="padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#e8f5e9;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+    <span>${s.name}</span><span style="color:${r<=2?'var(--red)':'var(--text2)'}">剩${r}堂</span>
+  </div>`;
+  el.remove();
+};
+
+window.removeStudent=function(e){
+  const el=e.target.closest('[data-id]');
+  if(!el) return;
+  const id=el.dataset.id;
+  const s=students[id];
+  if(!s) return;
+  const r=rem(s);
+  el.remove();
+  $('ci-all').innerHTML+=`<div data-id="${id}" style="padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#f5f5f5;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+    <span>${s.name}</span><span style="color:${r<=2?'var(--red)':'var(--text2)'}">剩${r}堂</span>
+  </div>`;
 };
 
 window.doCheckin=async function(){
-  const studentId=$('ci-student').value;
-  if(!studentId){toast('請選擇學員',true);return;}
-  const date=$('ci-date').value,time=$('ci-time').value;
-  if(!date||!time){toast('請填寫日期與時間',true);return;}
-  const s=students[studentId];
-  if(rem(s)<=0){toast('課堂已用完，請先購買課程卡',true);return;}
-  // 只更新課程卡的已使用堂數（學員列表從課程卡計算）
-  const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
-  if(card){
-    card.usedSessions=(card.usedSessions||0)+1;
-    await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
-  }
+  const selectedIds=getSelectedIds();
+  if(!selectedIds.length){toast('請選擇上課學員',true);return;}
+  const date=$('ci-date').value, start=$('ci-start').value, end=$('ci-end').value;
+  if(!date){toast('請填寫日期',true);return;}
+  const cls=$('ci-class').value;
   const note=$('ci-note').value.trim();
-  const sessionType=$('ci-type').value;
-  const logData={studentId,coachId:currentUser.id,date,time,note,sessionType};
-  const newRef=push(ref(db,'classLogs'));
-  await set(newRef,logData); classLogs[newRef.key]=logData;
-  toast(`${s.name} 簽到成功，剩餘 ${rem(s)} 堂`);
-  $('ci-note').value='';
-  renderCheckin(); updateCheckinInfo();
+  const btn=document.querySelector('#page-checkin .btn-success');
+  btn.disabled=true;
+  try{
+    for(const studentId of selectedIds){
+      const s=students[studentId];
+      if(!s){continue;}
+      if(rem(s)<=0){toast(`${s.name} 課堂已用完，略過`,true);continue;}
+      // 扣課程卡
+      const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
+      if(card){
+        card.usedSessions=(card.usedSessions||0)+1;
+        await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
+      }
+      // 記錄簽到
+      const logData={studentId,coachId:currentUser.id,date,time:start,timeEnd:end,note,classType:cls};
+      const newRef=push(ref(db,'classLogs'));
+      await set(newRef,logData); classLogs[newRef.key]=logData;
+    }
+    toast(`${selectedIds.length} 位學員簽到完成`);
+    $('ci-note').value='';
+    $('ci-selected').innerHTML='';
+    onClassChange();
+  }catch(e){toast('簽到失敗：'+e.message,true);}
+  finally{btn.disabled=false;}
 };
 
 window.cancelCheckin=async function(logId,studentId){
   if(!confirm('確定取消這筆簽到？將還原一堂課。')) return;
   const s=students[studentId];
   if(s){
-    // 只還原課程卡的已使用堂數
     const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&(p.usedSessions||0)>0);
     if(card){card.usedSessions=Math.max(0,(card.usedSessions||0)-1);await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});}
   }
-  await remove(ref(db,'classLogs/'+logId));
-  delete classLogs[logId];
-  renderCheckin(); toast('簽到已取消');
+  await remove(ref(db,'classLogs/'+logId)); delete classLogs[logId];
+  toast('簽到已取消');
 };
 
-// ── History ──
 window.renderHistory=function(q=''){
   // Hidden cards
   const hiddenCards=objArr(payments).filter(p=>p.hidden);
