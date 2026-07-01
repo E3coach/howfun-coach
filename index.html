@@ -379,6 +379,12 @@ tr:hover td{background:#fafafa}
     <!-- 教練帳號管理（總教練專屬） -->
     <div class="page" id="page-coaches">
       <div class="page-title">教練帳號管理</div>
+      <div class="card" style="background:#fff8e1;border-color:#ffe082">
+        <div class="card-title" style="color:var(--amber)"><i class="ti ti-tool"></i>資料修復工具（總教練專用）</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">如果課程卡的堂數與簽到紀錄不一致，點下方按鈕重新計算所有課程卡的已使用堂數。</p>
+        <button class="btn btn-success" onclick="syncCardSessions()"><i class="ti ti-refresh"></i>重新同步課程卡堂數</button>
+        <div id="sync-result" style="margin-top:.75rem;font-size:13px;color:var(--green)"></div>
+      </div>
       <div class="card">
         <div class="sec-head">
           <div class="card-title" style="margin:0"><i class="ti ti-shield-check"></i>教練列表</div>
@@ -423,7 +429,17 @@ const db = getDatabase(fireApp);
 let currentUser = null;
 const $ = id => document.getElementById(id);
 const objArr = obj => obj ? Object.entries(obj).map(([id,v])=>({id,...v})) : [];
-const rem = s => (s.totalSessions||0)-(s.usedSessions||0);
+const rem = s => {
+  // 從課程卡計算真實剩餘堂數
+  const cards = objArr(payments).filter(p=>p.studentId===s.id&&!p.hidden);
+  if(cards.length===0) return (s.totalSessions||0)-(s.usedSessions||0);
+  return cards.reduce((sum,p)=>sum+(p.sessions-(p.usedSessions||0)),0);
+};
+const remTotal = s => {
+  const cards = objArr(payments).filter(p=>p.studentId===s.id&&!p.hidden);
+  if(cards.length===0) return s.totalSessions||0;
+  return cards.reduce((sum,p)=>sum+p.sessions,0);
+};
 
 function toast(msg, isErr=false){
   const t=$('toast'); $('tmsg').textContent=msg;
@@ -837,7 +853,8 @@ window.updateCheckinInfo=function(){
   if(!s){info.style.display='none';return;}
   const r=rem(s);
   info.style.display='block';
-  info.innerHTML=`<strong>${s.name}</strong>&ensp;剩餘 <span style="color:${r<=2?'var(--red)':'var(--green)'};font-weight:700">${r} 堂</span>（共 ${s.totalSessions} 堂，已上 ${s.usedSessions} 堂）`;
+  const total=remTotal(s);
+  info.innerHTML=`<strong>${s.name}</strong>&ensp;剩餘 <span style="color:${r<=2?'var(--red)':'var(--green)'};font-weight:700">${r} 堂</span>（共 ${total} 堂）`;
 };
 
 window.doCheckin=async function(){
@@ -847,10 +864,8 @@ window.doCheckin=async function(){
   if(!date||!time){toast('請填寫日期與時間',true);return;}
   const s=students[studentId];
   if(rem(s)<=0){toast('課堂已用完，請先購買課程卡',true);return;}
-  s.usedSessions=(s.usedSessions||0)+1;
-  await update(ref(db,'students/'+studentId),{usedSessions:s.usedSessions});
-  // 更新課程卡已使用數
-  const card=objArr(payments).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
+  // 只更新課程卡的已使用堂數（學員列表從課程卡計算）
+  const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
   if(card){
     card.usedSessions=(card.usedSessions||0)+1;
     await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
@@ -869,9 +884,8 @@ window.cancelCheckin=async function(logId,studentId){
   if(!confirm('確定取消這筆簽到？將還原一堂課。')) return;
   const s=students[studentId];
   if(s){
-    s.usedSessions=Math.max(0,(s.usedSessions||0)-1);
-    await update(ref(db,'students/'+studentId),{usedSessions:s.usedSessions});
-    const card=objArr(payments).find(p=>p.studentId===studentId&&(p.usedSessions||0)>0);
+    // 只還原課程卡的已使用堂數
+    const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&(p.usedSessions||0)>0);
     if(card){card.usedSessions=Math.max(0,(card.usedSessions||0)-1);await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});}
   }
   await remove(ref(db,'classLogs/'+logId));
@@ -968,6 +982,43 @@ window.delCoach=async function(id){
 };
 
 // ── Password ──
+window.syncCardSessions=async function(){
+  const btn=document.querySelector('[onclick="syncCardSessions()"]');
+  btn.disabled=true;
+  btn.textContent='同步中…';
+  try{
+    // 計算每張課程卡實際被使用的次數（從 classLogs）
+    let fixCount=0;
+    const allCards=objArr(payments);
+    for(const card of allCards){
+      // 找出這張卡對應的簽到紀錄
+      // 用開卡日期之後、同學員的簽到紀錄來計算
+      const cardLogs=objArr(classLogs).filter(l=>l.studentId===card.studentId&&l.date>=card.date);
+      // 如果學員有多張卡，只計算這張卡應負責的堂數（依開卡順序）
+      const allStudentCards=allCards.filter(c=>c.studentId===card.studentId).sort((a,b)=>a.date.localeCompare(b.date));
+      const cardIdx=allStudentCards.findIndex(c=>c.id===card.id);
+      const prevCards=allStudentCards.slice(0,cardIdx);
+      const prevSessions=prevCards.reduce((sum,c)=>sum+c.sessions,0);
+      const studentLogs=objArr(classLogs).filter(l=>l.studentId===card.studentId).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+      const myLogs=studentLogs.slice(prevSessions,prevSessions+card.sessions);
+      const realUsed=myLogs.length;
+      if(realUsed!==(card.usedSessions||0)){
+        await update(ref(db,'payments/'+card.id),{usedSessions:realUsed});
+        payments[card.id].usedSessions=realUsed;
+        fixCount++;
+      }
+    }
+    $('sync-result').textContent=`✓ 同步完成，共修正 ${fixCount} 張課程卡`;
+    renderCards();
+    renderStudents('');
+  }catch(e){
+    $('sync-result').textContent='同步失敗：'+e.message;
+    $('sync-result').style.color='var(--red)';
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='<i class="ti ti-refresh"></i>重新同步課程卡堂數';
+  }
+};
 window.changePassword=async function(){
   const oldPw=$('pw-old').value,newPw=$('pw-new').value,confirm=$('pw-confirm').value;
   if(!oldPw||!newPw||!confirm){toast('請填寫所有欄位',true);return;}
