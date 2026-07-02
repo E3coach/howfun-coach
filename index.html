@@ -271,25 +271,22 @@ tr:hover td{background:#fafafa}
 
     <!-- 教練薪資 -->
     <div class="page" id="page-salary">
-      <div class="page-title">教練個人薪資</div>
+      <div class="page-title" id="salary-page-title">教練個人薪資</div>
       <div class="card">
-        <div class="sec-head">
-          <div class="card-title" style="margin:0"><i class="ti ti-calendar-stats"></i>選擇月份</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+            <label style="color:var(--text2);font-weight:500">開始：</label>
+            <input type="date" id="salary-start" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;outline:none">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+            <label style="color:var(--text2);font-weight:500">結束：</label>
+            <input type="date" id="salary-end" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;outline:none">
+          </div>
+          <button class="btn btn-primary" onclick="calcSalary()"><i class="ti ti-check"></i>確認</button>
         </div>
-        <div class="form-grid" style="max-width:320px;margin-top:.5rem">
-          <div class="ff"><label>年份</label><select id="salary-year"></select></div>
-          <div class="ff"><label>月份</label><select id="salary-month">
-            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
-            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
-            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
-            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
-          </select></div>
-        </div>
-        <button class="btn btn-primary" onclick="calcSalary()"><i class="ti ti-calculator"></i>計算薪資</button>
       </div>
       <div id="salary-result"></div>
     </div>
-
     <!-- 課程卡管理 -->
     <div class="page" id="page-cards">
       <div class="page-title">課程卡管理</div>
@@ -497,10 +494,7 @@ window.doLogin=async function(){
   $('topbar-user').textContent=`${coach.name}（${coach.role==='admin'?'總教練':'教練'}）`;
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=coach.role==='admin'?'':'none');
   const now=new Date();
-  const yr=$('salary-year'); yr.innerHTML='';
-  for(let y=2024;y<=2030;y++){const o=document.createElement('option');o.value=y;o.textContent=y+'年';yr.appendChild(o);}
-  yr.value=now.getFullYear();
-  $('salary-month').value=now.getMonth()+1;
+
   showPage('students');
 };
 
@@ -595,50 +589,118 @@ window.delStudent=async function(id){
 };
 
 // ── Salary ──
-window.renderSalary=function(){};
-window.calcSalary=async function(){
-  const yr=parseInt($('salary-year').value);
-  const mo=parseInt($('salary-month').value);
-  const prefix=`${yr}-${String(mo).padStart(2,'0')}`;
-  const myLogs=objArr(classLogs).filter(l=>l.date&&l.date.startsWith(prefix)&&l.coachId===currentUser.id);
+window.renderSalary=function(){
+  const now=new Date();
+  // 預設本月第一天到今天
+  const firstDay=new Date(now.getFullYear(),now.getMonth(),1);
+  const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  $('salary-start').value=fmt(firstDay);
+  $('salary-end').value=fmt(now);
+  $('salary-page-title').textContent=currentUser.name+' 個人薪資';
+  $('salary-result').innerHTML='';
+};
+
+window.calcSalary=function(){
+  const startDate=$('salary-start').value;
+  const endDate=$('salary-end').value;
+  if(!startDate||!endDate){toast('請選擇日期範圍',true);return;}
+
+  // 取得此教練在日期範圍內的所有簽到紀錄
+  const myLogs=objArr(classLogs).filter(l=>
+    l.coachId===currentUser.id &&
+    l.date>=startDate &&
+    l.date<=endDate
+  );
+
+  // 依班別+日期+時間分組（同一堂課多位學員合併）
+  const sessionMap={};
+  myLogs.forEach(l=>{
+    const key=`${l.classType||'個人班'}|${l.date}|${l.time}|${l.timeEnd||''}`;
+    if(!sessionMap[key]){
+      sessionMap[key]={classType:l.classType||'個人班',date:l.date,time:l.time,timeEnd:l.timeEnd||'',students:[],note:l.note||''};
+    }
+    sessionMap[key].students.push(l.studentId);
+  });
+
+  const sessions=Object.values(sessionMap).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+
   const coachData=coaches[currentUser.id];
   const rates=coachData?.rates||{normal60:0,normal90:0,trial30:0};
-  const typeLabel={normal60:'一般課 60分',normal90:'一般課 90分',trial30:'體驗課 30分'};
-  let totalPay=0;
-  const typeCounts={normal60:0,normal90:0,trial30:0};
-  myLogs.forEach(l=>{
-    const t=l.sessionType||'normal60';
-    typeCounts[t]=(typeCounts[t]||0)+1;
-    totalPay+=(rates[t]||0);
-  });
+
+  // 計算時數：依開始結束時間
+  function calcHours(start,end){
+    if(!start||!end) return 0;
+    const [sh,sm]=start.split(':').map(Number);
+    const [eh,em]=end.split(':').map(Number);
+    return Math.max(0,((eh*60+em)-(sh*60+sm))/60);
+  }
+
+  let totalHours=0, totalSalary=0;
+
+  const rows=sessions.map((s,i)=>{
+    const hours=calcHours(s.time,s.timeEnd);
+    const cnt=s.students.length;
+    // 薪資 = 時數 × 每小時課酬（用normal60費率/1小時換算）
+    const hourRate=rates.normal60||0;
+    const pay=Math.round(hours*hourRate);
+    totalHours+=hours;
+    totalSalary+=pay;
+    const timeStr=s.time+(s.timeEnd?` ～ ${s.timeEnd}`:'');
+    const cntStr=s.classType==='個人班'?cnt+'人':`${cnt}人`;
+    return `<tr>
+      <td><span class="badge b-blue">${s.classType}</span></td>
+      <td>${s.date}</td>
+      <td>${cntStr}</td>
+      <td>${timeStr}</td>
+      <td>${hours>0?hours+'hr':'0'}</td>
+      <td style="color:var(--green);font-weight:600">${pay>0?pay+' (待審)':'0 (待審)'}</td>
+      <td>${s.note||''}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteSalarySession('${s.date}','${s.time}','${s.classType}')"><i class="ti ti-trash"></i>刪除</button></td>
+    </tr>`;
+  }).join('');
+
   $('salary-result').innerHTML=`
     <div class="card">
-      <div class="card-title"><i class="ti ti-report-money"></i>${yr}年${mo}月 薪資報表</div>
-      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
-        <div><div style="font-size:13px;color:var(--text2)">總上課堂數</div><div style="font-size:28px;font-weight:700;color:var(--primary)">${myLogs.length} 堂</div></div>
-        <div><div style="font-size:13px;color:var(--text2)">本月薪資</div><div style="font-size:28px;font-weight:700;color:var(--green)">NT$ ${totalPay.toLocaleString()}</div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資</th><th>備註</th><th>刪除</th></tr></thead>
+          <tbody>
+            ${rows||'<tr><td colspan="8" class="empty" style="padding:1.5rem"><i class="ti ti-calendar-off"></i>此區間無上課紀錄</td></tr>'}
+          </tbody>
+          <tfoot>
+            <tr style="background:#fff8e1;font-weight:600">
+              <td colspan="4" style="padding:10px 12px">總和：</td>
+              <td style="padding:10px 12px">${totalHours}hr</td>
+              <td style="padding:10px 12px;color:var(--green)">${totalSalary}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.25rem">
-        ${Object.entries(typeCounts).map(([t,cnt])=>`
-          <div class="stat-card" style="text-align:left">
-            <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${typeLabel[t]}</div>
-            <div style="font-size:18px;font-weight:700">${cnt} 堂</div>
-            <div style="font-size:12px;color:var(--text2)">× NT$${rates[t]||0} = <strong>NT$${((rates[t]||0)*cnt).toLocaleString()}</strong></div>
-          </div>`).join('')}
-      </div>
-      <div class="card-title" style="font-size:14px"><i class="ti ti-list"></i>上課明細</div>
-      ${myLogs.length?`<div class="table-wrap"><table>
-        <thead><tr><th>日期</th><th>時間</th><th>學員</th><th>課程類型</th><th>課程內容</th><th>課酬</th></tr></thead>
-        <tbody>${myLogs.sort((a,b)=>a.date.localeCompare(b.date)).map(l=>{
-          const s=students[l.studentId];
-          const t=l.sessionType||'normal60';
-          return `<tr><td>${l.date}</td><td>${l.time}</td><td>${s?s.name:'—'}</td><td>${typeLabel[t]}</td><td>${l.note||'—'}</td><td>NT$${rates[t]||0}</td></tr>`;
-        }).join('')}</tbody>
-      </table></div>`:'<div class="empty"><i class="ti ti-calendar-off"></i>本月無上課紀錄</div>'}
     </div>`;
 };
 
-// ── Cards (課程卡) ──
+window.deleteSalarySession=async function(date,time,classType){
+  if(!confirm('確定刪除這筆課堂紀錄？相關學員的課堂將被還原。')) return;
+  // 找出這個時段的所有 logs
+  const toDelete=objArr(classLogs).filter(l=>
+    l.coachId===currentUser.id&&l.date===date&&l.time===time&&(l.classType||'個人班')===classType
+  );
+  for(const l of toDelete){
+    const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===l.studentId&&(p.usedSessions||0)>0);
+    if(card){
+      card.usedSessions=Math.max(0,(card.usedSessions||0)-1);
+      await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
+      payments[card.id]=card;
+    }
+    await remove(ref(db,'classLogs/'+l.id));
+    delete classLogs[l.id];
+  }
+  toast('已刪除並還原課堂');
+  calcSalary();
+};
+
+
 function renderCards(){
   const list=objArr(payments)
     .filter(p=>!p.hidden)
