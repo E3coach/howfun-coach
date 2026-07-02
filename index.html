@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Howfun 乒乓俱樂部</title>
+<title>Howfun 乒乓聚樂部</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -175,7 +175,7 @@ tr:hover td{background:#fafafa}
   <div class="login-box">
     <div class="login-logo">
       <div class="login-logo-icon"><i class="ti ti-table-tennis"></i></div>
-      <h1>Howfun 乒乓俱樂部</h1>
+      <h1>Howfun 乒乓聚樂部</h1>
       <p>教練管理系統</p>
     </div>
     <div class="lf"><label>帳號</label><input type="text" id="lu" placeholder="輸入帳號"></div>
@@ -190,7 +190,7 @@ tr:hover td{background:#fafafa}
   <!-- Topbar -->
   <div class="topbar">
     <button class="topbar-menu-btn" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
-    <div class="topbar-title">Howfun 乒乓俱樂部</div>
+    <div class="topbar-title">Howfun 乒乓聚樂部</div>
     <span class="topbar-user" id="topbar-user"></span>
     <button class="btn-toplogout" onclick="doLogout()"><i class="ti ti-logout" style="font-size:14px"></i>登出</button>
   </div>
@@ -674,7 +674,16 @@ function renderCards(){
 window.openModal=function(type,id){
   const overlay=$('overlay'),modal=$('modal');
   overlay.classList.add('open');
-  const coachOpts=(sel)=>objArr(coaches).map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
+  const coachOrder=['1儒','阿諾','妍蓁','銨銨','E3'];
+  const sortedCoaches=objArr(coaches).sort((a,b)=>{
+    const ai=coachOrder.indexOf(a.name);
+    const bi=coachOrder.indexOf(b.name);
+    if(ai===-1&&bi===-1) return a.name.localeCompare(b.name,'zh-TW');
+    if(ai===-1) return 1;
+    if(bi===-1) return -1;
+    return ai-bi;
+  });
+  const coachOpts=(sel)=>sortedCoaches.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
 
   if(type==='add-student'){
     modal.innerHTML=`<div class="modal-head">新增學員<button class="modal-close" onclick="closeModal()">×</button></div>
@@ -727,7 +736,7 @@ window.openModal=function(type,id){
       </select></div>
       <div class="form-grid">
         <div class="ff"><label>購買堂數 *</label><input type="number" id="card-sessions" min="1" value="10"></div>
-        <div class="ff"><label>金額（NT$）</label><input type="number" id="card-amount" min="0" value="3500"></div>
+        <div class="ff"><label>金額（NT$）</label><input type="number" id="card-amount" min="0" value="4000"></div>
       </div>
       <div class="form-grid">
         <div class="ff"><label>購買日期</label><input type="date" id="card-date" value="${new Date().toISOString().slice(0,10)}"></div>
@@ -842,13 +851,14 @@ function buildTimeOptions(){
 }
 
 function renderCheckin(){
-  // build time selects
   const startSel=$('ci-start'), endSel=$('ci-end');
   if(!startSel.options.length){
     startSel.innerHTML=buildTimeOptions();
     endSel.innerHTML=buildTimeOptions();
     startSel.value='07:00'; endSel.value='08:00';
   }
+  const now=new Date();
+  $('ci-date').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
   onClassChange();
 }
 
