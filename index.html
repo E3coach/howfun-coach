@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Howfun 乒乓聚樂部</title>
+<title>Howfun 乒乓俱樂部</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -175,7 +175,7 @@ tr:hover td{background:#fafafa}
   <div class="login-box">
     <div class="login-logo">
       <div class="login-logo-icon"><i class="ti ti-table-tennis"></i></div>
-      <h1>Howfun 乒乓聚樂部</h1>
+      <h1>Howfun 乒乓俱樂部</h1>
       <p>教練管理系統</p>
     </div>
     <div class="lf"><label>帳號</label><input type="text" id="lu" placeholder="輸入帳號"></div>
@@ -190,7 +190,7 @@ tr:hover td{background:#fafafa}
   <!-- Topbar -->
   <div class="topbar">
     <button class="topbar-menu-btn" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
-    <div class="topbar-title">Howfun 乒乓聚樂部</div>
+    <div class="topbar-title">Howfun 乒乓俱樂部</div>
     <span class="topbar-user" id="topbar-user"></span>
     <button class="btn-toplogout" onclick="doLogout()"><i class="ti ti-logout" style="font-size:14px"></i>登出</button>
   </div>
@@ -727,7 +727,7 @@ window.openModal=function(type,id){
       </select></div>
       <div class="form-grid">
         <div class="ff"><label>購買堂數 *</label><input type="number" id="card-sessions" min="1" value="10"></div>
-        <div class="ff"><label>金額（NT$）</label><input type="number" id="card-amount" min="0" value="4000"></div>
+        <div class="ff"><label>金額（NT$）</label><input type="number" id="card-amount" min="0" value="3500"></div>
       </div>
       <div class="form-grid">
         <div class="ff"><label>購買日期</label><input type="date" id="card-date" value="${new Date().toISOString().slice(0,10)}"></div>
@@ -908,6 +908,12 @@ window.removeStudent=function(e){
   </div>`;
 };
 
+function updateSelectedCount(){
+  const cnt=getSelectedIds().length;
+  const el=$('ci-selected-count');
+  if(el) el.textContent=cnt?`（${cnt} 人）`:'';
+}
+
 window.doCheckin=async function(){
   const selectedIds=getSelectedIds();
   if(!selectedIds.length){toast('請選擇上課學員',true);return;}
@@ -917,25 +923,29 @@ window.doCheckin=async function(){
   const note=$('ci-note').value.trim();
   const btn=document.querySelector('#page-checkin .btn-success');
   btn.disabled=true;
+  let successCount=0;
   try{
     for(const studentId of selectedIds){
       const s=students[studentId];
-      if(!s){continue;}
-      if(rem(s)<=0){toast(`${s.name} 課堂已用完，略過`,true);continue;}
-      // 扣課程卡
+      if(!s) continue;
+      if(rem(s)<=0){toast(`${s.name} 課堂已用完，已略過`,true);continue;}
       const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
       if(card){
         card.usedSessions=(card.usedSessions||0)+1;
         await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
+        payments[card.id]=card;
       }
-      // 記錄簽到
       const logData={studentId,coachId:currentUser.id,date,time:start,timeEnd:end,note,classType:cls};
       const newRef=push(ref(db,'classLogs'));
-      await set(newRef,logData); classLogs[newRef.key]=logData;
+      await set(newRef,logData);
+      classLogs[newRef.key]=logData;
+      successCount++;
     }
-    toast(`${selectedIds.length} 位學員簽到完成`);
+    if(successCount>0) toast(`${successCount} 位學員簽到完成 ✓`);
     $('ci-note').value='';
     $('ci-selected').innerHTML='';
+    updateSelectedCount();
+    await loadAll();
     onClassChange();
   }catch(e){toast('簽到失敗：'+e.message,true);}
   finally{btn.disabled=false;}
@@ -946,10 +956,17 @@ window.cancelCheckin=async function(logId,studentId){
   const s=students[studentId];
   if(s){
     const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&(p.usedSessions||0)>0);
-    if(card){card.usedSessions=Math.max(0,(card.usedSessions||0)-1);await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});}
+    if(card){
+      card.usedSessions=Math.max(0,(card.usedSessions||0)-1);
+      await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
+      payments[card.id]=card;
+    }
   }
-  await remove(ref(db,'classLogs/'+logId)); delete classLogs[logId];
+  await remove(ref(db,'classLogs/'+logId));
+  delete classLogs[logId];
   toast('簽到已取消');
+  const q=document.querySelector('#page-history .search-bar input');
+  renderHistory(q?q.value:'');
 };
 
 window.renderHistory=function(q=''){
