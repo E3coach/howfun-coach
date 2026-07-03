@@ -354,19 +354,6 @@ tr:hover td{background:#fafafa}
           </table>
         </div>
       </div>
-      <div class="card">
-        <div class="card-title"><i class="ti ti-history"></i>上課簽到紀錄</div>
-        <div class="search-bar">
-          <i class="ti ti-search"></i>
-          <input type="text" placeholder="搜尋學員姓名…" oninput="renderHistory(this.value)">
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>日期時間</th><th>學員</th><th>教練</th><th>課程類型</th><th>課程內容</th><th>操作</th></tr></thead>
-            <tbody id="history-tbody"></tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
     <!-- 修改密碼 -->
@@ -646,7 +633,8 @@ window.calcSalary=function(){
     totalHours+=hours;
     totalSalary+=pay;
     const timeStr=s.time+(s.timeEnd?` ～ ${s.timeEnd}`:'');
-    const cntStr=s.classType==='個人班'?cnt+'人':`${cnt}人`;
+    const studentNames=s.students.map(id=>{const st=students[id];return st?st.name:'—';}).join('、');
+    const cntStr=`<span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" onclick="showStudentPopup('${studentNames}')">${cnt}人</span>`;
     return `<tr>
       <td><span class="badge b-blue">${s.classType}</span></td>
       <td>${s.date}</td>
@@ -678,6 +666,33 @@ window.calcSalary=function(){
         </table>
       </div>
     </div>`;
+};
+
+
+// 顯示學員名單小視窗
+
+window.showStudentPopup=function(e, names){
+  // 移除已存在的 popup
+  const old=document.getElementById('student-popup');
+  if(old) old.remove();
+  const popup=document.createElement('div');
+  popup.id='student-popup';
+  popup.style.cssText='position:fixed;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:500;min-width:140px;font-size:13px;max-width:240px';
+  popup.innerHTML=`<div style="font-weight:600;margin-bottom:6px;color:var(--text2)">上課學員</div>${names.split('、').map(n=>`<div style="padding:3px 0;border-bottom:1px solid var(--border)">${n}</div>`).join('')}<div style="text-align:right;margin-top:8px"><button onclick="document.getElementById('student-popup').remove()" style="font-size:12px;padding:3px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);cursor:pointer">關閉</button></div>`;
+  const rect=e.target.getBoundingClientRect();
+  popup.style.top=(rect.bottom+6+window.scrollY)+'px';
+  popup.style.left=Math.min(rect.left,window.innerWidth-260)+'px';
+  document.body.appendChild(popup);
+  setTimeout(()=>document.addEventListener('click',function h(ev){if(!popup.contains(ev.target)&&ev.target!==e.target){popup.remove();document.removeEventListener('click',h);}},{once:false}),100);
+};
+
+window.showStudentPopup=function(names){
+  const overlay=$('overlay'), modal=$('modal');
+  overlay.classList.add('open');
+  const list=names.split('、').map(n=>`<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:14px">${n}</div>`).join('');
+  modal.innerHTML=`<div class="modal-head">上課學員名單<button class="modal-close" onclick="closeModal()">×</button></div>
+    <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem">${list}</div>
+    <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>`;
 };
 
 window.deleteSalarySession=async function(date,time,classType){
@@ -926,20 +941,18 @@ function renderCheckin(){
 
 window.onClassChange=function(){
   const cls=$('ci-class').value;
-  // get students in this class from their cards
   const cardStudentIds=new Set(
     objArr(payments).filter(p=>!p.hidden&&p.classType===cls).map(p=>p.studentId)
   );
   const filtered=objArr(students).filter(s=>cardStudentIds.has(s.id));
-  const allDiv=$('ci-all');
-  // keep already-selected ids
   const selectedIds=getSelectedIds();
-  allDiv.innerHTML=filtered.filter(s=>!selectedIds.includes(s.id)).map(s=>{
+  const available=filtered.filter(s=>!selectedIds.includes(s.id)&&rem(s)>0);
+  $('ci-all').innerHTML=available.map(s=>{
     const r=rem(s);
-    return `<div data-id="${s.id}" style="padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#f5f5f5;font-size:13px;display:flex;justify-content:space-between;align-items:center">
-      <span>${s.name}</span><span style="color:${r<=2?'var(--red)':'var(--text2)'}">剩${r}堂</span>
+    return `<div data-id="${s.id}" style="padding:8px 10px;border-radius:6px;margin-bottom:4px;background:#f5f5f5;font-size:13px;display:flex;justify-content:space-between;align-items:center;user-select:none">
+      <span style="font-weight:500">${s.name}</span><span style="color:${r<=2?'var(--amber)':'var(--text2)'}">剩 ${r} 堂</span>
     </div>`;
-  }).join('') || '<div style="padding:1rem;color:var(--text3);font-size:13px;text-align:center">此班別無學員</div>';
+  }).join('') || '<div style="padding:1.5rem;color:var(--text3);font-size:13px;text-align:center">此班別無可上課學員</div>';
 };
 
 window.onStartChange=function(){
