@@ -740,9 +740,9 @@ function renderCards(){
       <td>${c?c.name:'—'}</td>
       <td>NT$ ${Number(p.amount||0).toLocaleString()}</td>
       <td>${badge}</td>
-      <td style="white-space:nowrap">
+      <td style="white-space:nowrap;display:flex;gap:6px">
         <button class="btn btn-danger btn-sm" onclick="hideCard('${p.id}')"><i class="ti ti-eye-off"></i>不顯示</button>
-        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i></button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')" title="刪除課程卡並還原堂數"><i class="ti ti-trash"></i>刪除</button>
       </td>
     </tr>`;
   }).join('');
@@ -973,24 +973,22 @@ window.addStudent=function(e){
   const id=el.dataset.id;
   const s=students[id];
   if(!s) return;
-  const r=rem(s);
-  $('ci-selected').innerHTML+=`<div data-id="${id}" style="padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#e8f5e9;font-size:13px;display:flex;justify-content:space-between;align-items:center">
-    <span>${s.name}</span><span style="color:${r<=2?'var(--red)':'var(--text2)'}">剩${r}堂</span>
-  </div>`;
+  // 加入上課學員區（不顯示堂數）
+  const div=document.createElement('div');
+  div.dataset.id=id;
+  div.style.cssText='padding:8px 10px;border-radius:6px;margin-bottom:4px;background:#e8f5e9;font-size:13px;display:flex;align-items:center;user-select:none';
+  div.innerHTML=`<span style="font-weight:500">${s.name}</span>`;
+  $('ci-selected').appendChild(div);
   el.remove();
+  updateSelectedCount();
 };
-
 window.removeStudent=function(e){
   const el=e.target.closest('[data-id]');
   if(!el) return;
-  const id=el.dataset.id;
-  const s=students[id];
-  if(!s) return;
-  const r=rem(s);
   el.remove();
-  $('ci-all').innerHTML+=`<div data-id="${id}" style="padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#f5f5f5;font-size:13px;display:flex;justify-content:space-between;align-items:center">
-    <span>${s.name}</span><span style="color:${r<=2?'var(--red)':'var(--text2)'}">剩${r}堂</span>
-  </div>`;
+  updateSelectedCount();
+  // 重新整理此班學員列表，顯示正確剩餘堂數
+  onClassChange();
 };
 
 function updateSelectedCount(){
