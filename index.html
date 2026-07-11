@@ -238,6 +238,9 @@ tr:hover td{background:#fafafa}
       <div class="sidebar-item" onclick="showPage('password')" data-page="password">
         <i class="ti ti-lock"></i>修改密碼
       </div>
+      <div class="sidebar-item admin-only" onclick="showPage('all-salary')" data-page="all-salary">
+        <i class="ti ti-report-money"></i>所有教練薪資
+      </div>
       <div class="sidebar-item admin-only" onclick="showPage('coaches')" data-page="coaches">
         <i class="ti ti-shield-check"></i>教練帳號管理
       </div>
@@ -287,7 +290,6 @@ tr:hover td{background:#fafafa}
       </div>
       <div id="salary-result"></div>
     </div>
-    <!-- 課程卡管理 -->
     <div class="page" id="page-cards">
       <div class="page-title">課程卡管理</div>
       <div class="card">
@@ -341,7 +343,6 @@ tr:hover td{background:#fafafa}
         <button class="btn btn-success" style="margin-top:1.25rem;width:100%;justify-content:center;padding:11px" onclick="doCheckin()"><i class="ti ti-check"></i>完成簽到</button>
       </div>
     </div>
-
     <!-- 課程卡歷史 -->
     <div class="page" id="page-history">
       <div class="page-title">課程卡歷史</div>
@@ -355,7 +356,6 @@ tr:hover td{background:#fafafa}
         </div>
       </div>
     </div>
-
     <!-- 修改密碼 -->
     <div class="page" id="page-password">
       <div class="page-title">修改密碼</div>
@@ -368,15 +368,26 @@ tr:hover td{background:#fafafa}
       </div>
     </div>
 
-    <!-- 教練帳號管理（總教練專屬） -->
+    <div class="page" id="page-all-salary">
+      <div class="page-title">所有教練薪資</div>
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+            <label style="color:var(--text2);font-weight:500">開始：</label>
+            <input type="date" id="allsal-start" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;outline:none">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+            <label style="color:var(--text2);font-weight:500">結束：</label>
+            <input type="date" id="allsal-end" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;outline:none">
+          </div>
+          <button class="btn btn-primary" onclick="calcAllSalary()"><i class="ti ti-check"></i>確認</button>
+        </div>
+      </div>
+      <div id="allsal-result"></div>
+    </div>
+
     <div class="page" id="page-coaches">
       <div class="page-title">教練帳號管理</div>
-      <div class="card" style="background:#fff8e1;border-color:#ffe082">
-        <div class="card-title" style="color:var(--amber)"><i class="ti ti-tool"></i>資料修復工具（總教練專用）</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">如果課程卡的堂數與簽到紀錄不一致，點下方按鈕重新計算所有課程卡的已使用堂數。</p>
-        <button class="btn btn-success" onclick="syncCardSessions()"><i class="ti ti-refresh"></i>重新同步課程卡堂數</button>
-        <div id="sync-result" style="margin-top:.75rem;font-size:13px;color:var(--green)"></div>
-      </div>
       <div class="card">
         <div class="sec-head">
           <div class="card-title" style="margin:0"><i class="ti ti-shield-check"></i>教練列表</div>
@@ -422,7 +433,6 @@ let currentUser = null;
 const $ = id => document.getElementById(id);
 const objArr = obj => obj ? Object.entries(obj).map(([id,v])=>({id,...v})) : [];
 const rem = s => {
-  // 從課程卡計算真實剩餘堂數
   const cards = objArr(payments).filter(p=>p.studentId===s.id&&!p.hidden);
   if(cards.length===0) return (s.totalSessions||0)-(s.usedSessions||0);
   return cards.reduce((sum,p)=>sum+(p.sessions-(p.usedSessions||0)),0);
@@ -452,9 +462,9 @@ async function seedIfEmpty(){
   const snap=await get(ref(db,'coaches'));
   if(snap.exists()) return;
   await set(ref(db,'coaches'),{
-    'admin':{name:'總教練',username:'admin',password:'admin123',role:'admin',rates:{normal60:0,normal90:0,trial30:0}},
-    'c1':{name:'陳教練',username:'coach1',password:'coach123',role:'coach',rates:{normal60:300,normal90:450,trial30:150}},
-    'c2':{name:'林教練',username:'coach2',password:'coach456',role:'coach',rates:{normal60:300,normal90:450,trial30:150}},
+    'admin':{name:'總教練',username:'admin',password:'admin123',role:'admin',salaryPerSession:0},
+    'c1':{name:'陳教練',username:'coach1',password:'coach123',role:'coach',salaryPerSession:300},
+    'c2':{name:'林教練',username:'coach2',password:'coach456',role:'coach',salaryPerSession:300},
   });
 }
 
@@ -480,8 +490,6 @@ window.doLogin=async function(){
   $('app').style.display='block';
   $('topbar-user').textContent=`${coach.name}（${coach.role==='admin'?'總教練':'教練'}）`;
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=coach.role==='admin'?'':'none');
-  const now=new Date();
-
   showPage('students');
 };
 
@@ -517,15 +525,17 @@ window.showPage=function(page){
   if(page==='students') renderStudents('');
   if(page==='salary') renderSalary();
   if(page==='cards') renderCards();
-  if(page==='checkin'){renderCheckin();}
+  if(page==='checkin') renderCheckin();
   if(page==='history') renderHistory('');
   if(page==='coaches') renderCoaches();
+  if(page==='salary') renderSalary();
+  if(page==='all-salary') renderAllSalary();
   if(page==='password'){$('pw-old').value='';$('pw-new').value='';$('pw-confirm').value='';}
 };
 
 function myStudents(){
   const all=objArr(students);
-  return all; // 所有教練皆可看到全部學員
+  return all;
 }
 
 // ── Students ──
@@ -542,7 +552,8 @@ window.renderStudents=function(q=''){
   if(!list.length){tbody.innerHTML=`<tr><td colspan="6" class="empty"><i class="ti ti-user-off"></i>尚無學員</td></tr>`;return;}
   tbody.innerHTML=list.map(s=>{
     const r=rem(s);
-    const pct=s.totalSessions?Math.max(0,Math.round(r/s.totalSessions*100)):0;
+    const total=remTotal(s);
+    const pct=total?Math.max(0,Math.round(r/total*100)):0;
     const coach=coaches[s.coachId];
     const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">正常</span>';
     return `<tr>
@@ -578,148 +589,130 @@ window.delStudent=async function(id){
 // ── Salary ──
 window.renderSalary=function(){
   const now=new Date();
-  // 預設本月第一天到今天
   const firstDay=new Date(now.getFullYear(),now.getMonth(),1);
   const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  $('salary-start').value=fmt(firstDay);
-  $('salary-end').value=fmt(now);
-  $('salary-page-title').textContent=currentUser.name+' 個人薪資';
+  $('salary-start').value=fmt(firstDay); $('salary-end').value=fmt(now);
+  if($('salary-page-title')) $('salary-page-title').textContent=currentUser.name+' 個人薪資';
   $('salary-result').innerHTML='';
 };
-
 window.calcSalary=function(){
-  const startDate=$('salary-start').value;
-  const endDate=$('salary-end').value;
+  const startDate=$('salary-start').value, endDate=$('salary-end').value;
   if(!startDate||!endDate){toast('請選擇日期範圍',true);return;}
-
-  // 取得此教練在日期範圍內的所有簽到紀錄
-  const myLogs=objArr(classLogs).filter(l=>
-    l.coachId===currentUser.id &&
-    l.date>=startDate &&
-    l.date<=endDate
-  );
-
-  // 依班別+日期+時間分組（同一堂課多位學員合併）
+  const myLogs=objArr(classLogs).filter(l=>l.coachId===currentUser.id&&l.date>=startDate&&l.date<=endDate);
   const sessionMap={};
   myLogs.forEach(l=>{
     const key=`${l.classType||'個人班'}|${l.date}|${l.time}|${l.timeEnd||''}`;
-    if(!sessionMap[key]){
-      sessionMap[key]={classType:l.classType||'個人班',date:l.date,time:l.time,timeEnd:l.timeEnd||'',students:[],note:l.note||''};
-    }
+    if(!sessionMap[key])sessionMap[key]={classType:l.classType||'個人班',date:l.date,time:l.time,timeEnd:l.timeEnd||'',students:[],note:l.note||'',manualPay:l.manualPay||0};
     sessionMap[key].students.push(l.studentId);
+    if(l.manualPay!==undefined)sessionMap[key].manualPay=l.manualPay;
   });
-
   const sessions=Object.values(sessionMap).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
-
-  const coachData=coaches[currentUser.id];
-  const rates=coachData?.rates||{normal60:0,normal90:0,trial30:0};
-
-  // 計算時數：依開始結束時間
-  function calcHours(start,end){
-    if(!start||!end) return 0;
-    const [sh,sm]=start.split(':').map(Number);
-    const [eh,em]=end.split(':').map(Number);
-    return Math.max(0,((eh*60+em)-(sh*60+sm))/60);
-  }
-
-  let totalHours=0, totalSalary=0;
-
-  const rows=sessions.map((s,i)=>{
+  function calcHours(s,e){if(!s||!e)return 0;const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);return Math.max(0,((eh*60+em)-(sh*60+sm))/60);}
+  let totalHours=0,totalSalary=0;
+  const rows=sessions.map(s=>{
     const hours=calcHours(s.time,s.timeEnd);
     const cnt=s.students.length;
-    // 薪資 = 時數 × 每小時課酬（用normal60費率/1小時換算）
-    const hourRate=rates.normal60||0;
-    const pay=Math.round(hours*hourRate);
-    totalHours+=hours;
-    totalSalary+=pay;
+    const pay=s.manualPay||0;
+    totalHours+=hours; totalSalary+=pay;
     const timeStr=s.time+(s.timeEnd?` ～ ${s.timeEnd}`:'');
     const studentNames=s.students.map(id=>{const st=students[id];return st?st.name:'—';}).join('、');
-    const cntStr=`<span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" onclick="showStudentPopup('${studentNames}')">${cnt}人</span>`;
     return `<tr>
       <td><span class="badge b-blue">${s.classType}</span></td>
       <td>${s.date}</td>
-      <td>${cntStr}</td>
+      <td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" onclick="showStudentPopup('${studentNames}')">${cnt}人</span></td>
       <td>${timeStr}</td>
       <td>${hours>0?hours+'hr':'0'}</td>
       <td style="color:var(--green);font-weight:600">${pay>0?pay+' (待審)':'0 (待審)'}</td>
       <td>${s.note||''}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteSalarySession('${s.date}','${s.time}','${s.classType}')"><i class="ti ti-trash"></i>刪除</button></td>
     </tr>`;
   }).join('');
+  $('salary-result').innerHTML=`<div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資</th><th>備註</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="7" class="empty" style="padding:1.5rem"><i class="ti ti-calendar-off"></i>此區間無上課紀錄</td></tr>'}</tbody>
+    <tfoot><tr style="background:#fff8e1;font-weight:600"><td colspan="4" style="padding:10px 12px">總和：</td><td style="padding:10px 12px">${totalHours}hr</td><td style="padding:10px 12px;color:var(--green)">${totalSalary}</td><td></td></tr></tfoot>
+  </table></div></div>`;
+};
 
-  $('salary-result').innerHTML=`
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資</th><th>備註</th><th>刪除</th></tr></thead>
-          <tbody>
-            ${rows||'<tr><td colspan="8" class="empty" style="padding:1.5rem"><i class="ti ti-calendar-off"></i>此區間無上課紀錄</td></tr>'}
-          </tbody>
-          <tfoot>
-            <tr style="background:#fff8e1;font-weight:600">
-              <td colspan="4" style="padding:10px 12px">總和：</td>
-              <td style="padding:10px 12px">${totalHours}hr</td>
-              <td style="padding:10px 12px;color:var(--green)">${totalSalary}</td>
-              <td colspan="2"></td>
-            </tr>
-          </tfoot>
-        </table>
+function renderAllSalary(){
+  const now=new Date();
+  const firstDay=new Date(now.getFullYear(),now.getMonth(),1);
+  const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  $('all-salary-start').value=fmt(firstDay);
+  $('all-salary-end').value=fmt(now);
+  calcAllSalary();
+}
+window.calcAllSalary=function(){
+  const startDate=$('allsal-start').value, endDate=$('allsal-end').value;
+  if(!startDate||!endDate)return;
+  const coachOrder=['1儒','阿諾','妍蓁','銨銨','E3'];
+  const allCoaches=objArr(coaches).filter(c=>c.role!=='admin').sort((a,b)=>{
+    const ai=coachOrder.indexOf(a.name),bi=coachOrder.indexOf(b.name);
+    if(ai===-1&&bi===-1)return a.name.localeCompare(b.name,'zh-TW');
+    if(ai===-1)return 1; if(bi===-1)return -1; return ai-bi;
+  });
+  function calcHours(s,e){if(!s||!e)return 0;const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);return Math.max(0,((eh*60+em)-(sh*60+sm))/60);}
+  let html='';
+  allCoaches.forEach(coach=>{
+    const myLogs=objArr(classLogs).filter(l=>l.coachId===coach.id&&l.date>=startDate&&l.date<=endDate);
+    const sessionMap={};
+    myLogs.forEach(l=>{
+      const key=`${l.classType||'個人班'}|${l.date}|${l.time}|${l.timeEnd||''}`;
+      if(!sessionMap[key])sessionMap[key]={classType:l.classType||'個人班',date:l.date,time:l.time,timeEnd:l.timeEnd||'',students:[],note:l.note||'',manualPay:l.manualPay||0};
+      sessionMap[key].students.push(l.studentId);
+      if(l.manualPay!==undefined)sessionMap[key].manualPay=l.manualPay;
+    });
+    const sessions=Object.values(sessionMap).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+    let totalHours=0,totalSalary=0;
+    const rows=sessions.map(s=>{
+      const hours=calcHours(s.time,s.timeEnd);
+      const pay=s.manualPay||0;
+      totalHours+=hours; totalSalary+=pay;
+      const timeStr=s.time+(s.timeEnd?` ～ ${s.timeEnd}`:'');
+      const studentNames=s.students.map(id=>{const st=students[id];return st?st.name:'—';}).join('、');
+      const sessionKey=encodeURIComponent(`${coach.id}|${s.date}|${s.time}|${s.classType}`);
+      return `<tr>
+        <td><span class="badge b-blue">${s.classType}</span></td>
+        <td>${s.date}</td>
+        <td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" onclick="showStudentPopup('${studentNames}')">${s.students.length}人</span></td>
+        <td>${timeStr}</td>
+        <td>${hours>0?hours+'hr':'0'}</td>
+        <td><input type="number" min="0" value="${pay}" data-key="${sessionKey}" data-coach="${coach.id}" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this)" placeholder="金額"></td>
+        <td>${s.note||''}</td>
+      </tr>`;
+    }).join('');
+    html+=`<div class="card" style="margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
+        <div style="font-size:15px;font-weight:700">${coach.name}</div>
+        <div style="font-size:13px;color:var(--text2)">總時數：<strong>${totalHours}hr</strong>&ensp;總薪資：<strong style="color:var(--green)">NT$ <span id="total-${coach.id}">${totalSalary}</span></strong></div>
       </div>
+      ${sessions.length?`<div class="table-wrap"><table>
+        <thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資（NT$）</th><th>備註</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`:'<div class="empty" style="padding:1rem"><i class="ti ti-calendar-off"></i>此期間無上課紀錄</div>'}
     </div>`;
+  });
+  $('allsal-result').innerHTML=html||'<div class="empty"><i class="ti ti-users-off"></i>無教練資料</div>';
 };
-
-
-// 顯示學員名單小視窗
-
-window.showStudentPopup=function(e, names){
-  // 移除已存在的 popup
-  const old=document.getElementById('student-popup');
-  if(old) old.remove();
-  const popup=document.createElement('div');
-  popup.id='student-popup';
-  popup.style.cssText='position:fixed;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:500;min-width:140px;font-size:13px;max-width:240px';
-  popup.innerHTML=`<div style="font-weight:600;margin-bottom:6px;color:var(--text2)">上課學員</div>${names.split('、').map(n=>`<div style="padding:3px 0;border-bottom:1px solid var(--border)">${n}</div>`).join('')}<div style="text-align:right;margin-top:8px"><button onclick="document.getElementById('student-popup').remove()" style="font-size:12px;padding:3px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);cursor:pointer">關閉</button></div>`;
-  const rect=e.target.getBoundingClientRect();
-  popup.style.top=(rect.bottom+6+window.scrollY)+'px';
-  popup.style.left=Math.min(rect.left,window.innerWidth-260)+'px';
-  document.body.appendChild(popup);
-  setTimeout(()=>document.addEventListener('click',function h(ev){if(!popup.contains(ev.target)&&ev.target!==e.target){popup.remove();document.removeEventListener('click',h);}},{once:false}),100);
-};
-
-window.showStudentPopup=function(names){
-  const overlay=$('overlay'), modal=$('modal');
-  overlay.classList.add('open');
-  const list=names.split('、').map(n=>`<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:14px">${n}</div>`).join('');
-  modal.innerHTML=`<div class="modal-head">上課學員名單<button class="modal-close" onclick="closeModal()">×</button></div>
-    <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem">${list}</div>
-    <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>`;
-};
-
-window.deleteSalarySession=async function(date,time,classType){
-  if(!confirm('確定刪除這筆課堂紀錄？相關學員的課堂將被還原。')) return;
-  // 找出這個時段的所有 logs
-  const toDelete=objArr(classLogs).filter(l=>
-    l.coachId===currentUser.id&&l.date===date&&l.time===time&&(l.classType||'個人班')===classType
-  );
-  for(const l of toDelete){
-    const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===l.studentId&&(p.usedSessions||0)>0);
-    if(card){
-      card.usedSessions=Math.max(0,(card.usedSessions||0)-1);
-      await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
-      payments[card.id]=card;
-    }
-    await remove(ref(db,'classLogs/'+l.id));
-    delete classLogs[l.id];
+window.saveManualPay=async function(input){
+  const pay=parseInt(input.value)||0;
+  const sessionKey=decodeURIComponent(input.dataset.key);
+  const coachId=input.dataset.coach;
+  const [cId,date,time,classType]=sessionKey.split('|');
+  const logsToUpdate=objArr(classLogs).filter(l=>l.coachId===cId&&l.date===date&&l.time===time&&(l.classType||'個人班')===classType);
+  for(const l of logsToUpdate){classLogs[l.id].manualPay=pay;await update(ref(db,'classLogs/'+l.id),{manualPay:pay});}
+  const totEl=document.getElementById('total-'+coachId);
+  if(totEl){
+    const startDate=$('allsal-start').value, endDate=$('allsal-end').value;
+    const coachLogs=objArr(classLogs).filter(l=>l.coachId===coachId&&l.date>=startDate&&l.date<=endDate);
+    const seen=new Set(); let newTotal=0;
+    coachLogs.forEach(l=>{const k=`${l.date}|${l.time}|${l.classType||'個人班'}`;if(!seen.has(k)){seen.add(k);newTotal+=(l.manualPay||0);}});
+    totEl.textContent=newTotal;
   }
-  toast('已刪除並還原課堂');
-  calcSalary();
+  toast('薪資已儲存');
 };
-
 
 function renderCards(){
-  const list=objArr(payments)
-    .filter(p=>!p.hidden)
-    .sort((a,b)=>b.date.localeCompare(a.date));
+  const list=objArr(payments).filter(p=>!p.hidden).sort((a,b)=>b.date.localeCompare(a.date));
   const tbody=$('cards-tbody');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty"><i class="ti ti-credit-card-off"></i>尚無課程卡</td></tr>`;return;}
   tbody.innerHTML=list.map(p=>{
@@ -729,38 +722,140 @@ function renderCards(){
     const r=p.sessions-used;
     const pct=p.sessions?Math.max(0,Math.round(r/p.sessions*100)):0;
     const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">有效</span>';
+        const cardLogs=objArr(classLogs).filter(l=>l.studentId===p.studentId&&l.date>=p.date).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,p.sessions);
+    // Store logs in global map, use card id as key
+    window._cardLogsMap=window._cardLogsMap||{};
+    window._cardLogsMap[p.id]=cardLogs;
     return `<tr>
       <td>${p.date}</td>
       <td><span class="badge b-blue">${p.classType||'—'}</span></td>
       <td><strong>${s?s.name:'—'}</strong></td>
       <td>
-        <div style="font-size:14px;font-weight:600">${r} / ${p.sessions} 堂</div>
+        <div style="font-size:14px;font-weight:600;cursor:pointer;color:var(--primary);text-decoration:underline" onclick="showCardLogs('${p.id}','${s?s.name:'—'}')">${r} / ${p.sessions} 堂</div>
         <div class="prog-bar" style="min-width:80px"><div class="prog-fill" style="width:${pct}%"></div></div>
       </td>
-      <td>${c?c.name:'—'}</td>
-      <td>NT$ ${Number(p.amount||0).toLocaleString()}</td>
+      <td>
+        NT$ ${Number(p.amount||0).toLocaleString()}
+        <button class="btn btn-outline btn-sm" style="margin-left:6px;padding:3px 8px;font-size:11px" onclick="editCardAmount('${p.id}',${p.amount||0})"><i class="ti ti-edit"></i>修改</button>
+      </td>
       <td>${badge}</td>
       <td style="white-space:nowrap;display:flex;gap:6px">
         <button class="btn btn-danger btn-sm" onclick="hideCard('${p.id}')"><i class="ti ti-eye-off"></i>不顯示</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')" title="刪除課程卡並還原堂數"><i class="ti ti-trash"></i>刪除</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i>刪除</button>
       </td>
     </tr>`;
   }).join('');
 }
 
+window.showCardLogs=function(cardId, studentName){
+  const logs=(window._cardLogsMap&&window._cardLogsMap[cardId])||[];
+  const overlay=$('overlay'), modal=$('modal');
+  overlay.classList.add('open');
+  let rows='';
+  if(logs.length){
+    logs.forEach(function(l,i){
+      rows+='<tr>'+
+        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center">'+(i+1)+'</td>'+
+        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+l.date+'</td>'+
+        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+l.time+'</td>'+
+        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+(coaches[l.coachId]&&coaches[l.coachId].name||'—')+'</td>'+
+        '</tr>';
+    });
+  } else {
+    rows='<tr><td colspan="4" style="padding:1rem;text-align:center;color:#757575">尚無上課紀錄</td></tr>';
+  }
+  modal.innerHTML='<div class="modal-head">'+studentName+' 上課紀錄<button class="modal-close" onclick="closeModal()">×</button></div>'+
+    '<div class="table-wrap"><table>'+
+    '<thead><tr><th style="padding:8px 12px">#</th><th style="padding:8px 12px">日期</th><th style="padding:8px 12px">時間</th><th style="padding:8px 12px">教練</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div>'+
+    '<div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>';
+};
+
+window.editCardAmount=function(cardId, currentAmount){
+  const overlay=$('overlay'), modal=$('modal');
+  overlay.classList.add('open');
+  modal.innerHTML=`<div class="modal-head">修改金額<button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="ff"><label>金額（NT$）</label><input type="number" id="new-amount" value="${currentAmount}" min="0" style="font-size:16px"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
+      <button class="btn btn-primary" onclick="submitEditAmount('${cardId}')">儲存</button>
+    </div>`;
+  setTimeout(()=>document.getElementById('new-amount')?.focus(),100);
+};
+
+window.submitEditAmount=async function(cardId){
+  const newAmount=parseInt(document.getElementById('new-amount').value)||0;
+  await update(ref(db,'payments/'+cardId),{amount:newAmount});
+  payments[cardId].amount=newAmount;
+  closeModal(); renderCards(); toast('金額已更新');
+};
+
+window.hideCard=async function(id){
+  if(!confirm('確定將此課程卡移至歷史？')) return;
+  await update(ref(db,'payments/'+id),{hidden:true});
+  payments[id].hidden=true;
+  renderCards(); toast('已移至課程卡歷史');
+};
+window.deleteCard=async function(id){
+  if(!confirm('確定永久刪除此課程卡？學員堂數將還原。')) return;
+  const p=payments[id];
+  if(p){
+    const s=students[p.studentId];
+    if(s){s.totalSessions=Math.max(0,(s.totalSessions||0)-p.sessions);s.usedSessions=Math.max(0,(s.usedSessions||0)-(p.usedSessions||0));await update(ref(db,'students/'+p.studentId),{totalSessions:s.totalSessions,usedSessions:s.usedSessions});}
+  }
+  await remove(ref(db,'payments/'+id)); delete payments[id];
+  renderCards(); toast('課程卡已刪除');
+};
+window.showStudentPopup=function(names){
+  const overlay=$('overlay'), modal=$('modal');
+  overlay.classList.add('open');
+  const list=names.split('、').map(n=>`<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:14px">${n}</div>`).join('');
+  modal.innerHTML=`<div class="modal-head">上課學員名單<button class="modal-close" onclick="closeModal()">×</button></div>
+    <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem">${list}</div>
+    <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>`;
+};
+window.showCardLogs=function(encodedLogs, studentName){
+  const overlay=$('overlay'), modal=$('modal');
+  overlay.classList.add('open');
+  const logs=decodeURIComponent(encodedLogs).split('||').filter(Boolean);
+  const rows=logs.length?logs.map((l,i)=>{
+    const parts=l.split(' ');
+    const date=parts[0]||'';
+    const time=parts[1]||'';
+    const coach=parts.slice(2).join(' ')||'—';
+    return `<tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${i+1}</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${date}</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${time}</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${coach}</td></tr>`;
+  }).join(''):`<tr><td colspan="4" style="padding:1rem;text-align:center;color:var(--text2)">尚無上課紀錄</td></tr>`;
+  modal.innerHTML=`<div class="modal-head">${studentName} 上課紀錄<button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th style="padding:8px 12px">#</th><th style="padding:8px 12px">日期</th><th style="padding:8px 12px">時間</th><th style="padding:8px 12px">教練</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>`;
+};
+
+window.editCardAmount=function(cardId, currentAmount){
+  const overlay=$('overlay'), modal=$('modal');
+  overlay.classList.add('open');
+  modal.innerHTML=`<div class="modal-head">修改金額<button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="ff"><label>金額（NT$）</label><input type="number" id="edit-amount-val" value="${currentAmount}" min="0" style="font-size:16px"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
+      <button class="btn btn-primary" onclick="submitEditAmount('${cardId}')">儲存</button>
+    </div>`;
+  setTimeout(()=>{const el=$('edit-amount-val');if(el){el.focus();el.select();}},100);
+};
+
+window.submitEditAmount=async function(cardId){
+  const val=parseInt($('edit-amount-val').value)||0;
+  await update(ref(db,'payments/'+cardId),{amount:val});
+  payments[cardId].amount=val;
+  closeModal(); renderCards(); toast('金額已更新');
+};
+
 window.openModal=function(type,id){
   const overlay=$('overlay'),modal=$('modal');
   overlay.classList.add('open');
-  const coachOrder=['1儒','阿諾','妍蓁','銨銨','E3'];
-  const sortedCoaches=objArr(coaches).sort((a,b)=>{
-    const ai=coachOrder.indexOf(a.name);
-    const bi=coachOrder.indexOf(b.name);
-    if(ai===-1&&bi===-1) return a.name.localeCompare(b.name,'zh-TW');
-    if(ai===-1) return 1;
-    if(bi===-1) return -1;
-    return ai-bi;
-  });
-  const coachOpts=(sel)=>sortedCoaches.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
+  const coachOpts=(sel)=>objArr(coaches).filter(c=>c.role==='coach').map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
 
   if(type==='add-student'){
     modal.innerHTML=`<div class="modal-head">新增學員<button class="modal-close" onclick="closeModal()">×</button></div>
@@ -820,24 +915,17 @@ window.openModal=function(type,id){
         <div class="ff"><label>負責教練</label><select id="card-coach">${coachOpts(currentUser.role==='coach'?currentUser.id:'')}</select></div>
       </div>
       <div class="ff"><label>備註</label><input id="card-note" placeholder="選填"></div>
-      <div class="modal-foot">
-        <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
-        <button class="btn btn-primary" onclick="submitAddCard()">新增課程卡</button>
-      </div>`;
-  }
+      <div class="modal-foot"><button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button><button class="btn btn-primary" onclick="submitAddCard()">新增課程卡</button></div>`;
   if(type==='add-coach'){
     modal.innerHTML=`<div class="modal-head">新增教練<button class="modal-close" onclick="closeModal()">×</button></div>
       <div class="form-grid">
         <div class="ff"><label>姓名 *</label><input id="cn" placeholder="教練姓名"></div>
         <div class="ff"><label>帳號 *</label><input id="cu" placeholder="登入帳號"></div>
       </div>
-      <div class="ff"><label>密碼 *</label><input id="cpw" placeholder="初始密碼"></div>
-      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px;margin-top:4px">課酬設定（NT$）</div>
       <div class="form-grid">
-        <div class="ff"><label>一般課 60分</label><input type="number" id="csal60" value="300" min="0"></div>
-        <div class="ff"><label>一般課 90分</label><input type="number" id="csal90" value="450" min="0"></div>
+        <div class="ff"><label>密碼 *</label><input id="cpw" placeholder="初始密碼"></div>
+        <div class="ff"><label>每堂課酬（NT$）</label><input type="number" id="csal" value="300" min="0"></div>
       </div>
-      <div class="ff" style="max-width:50%"><label>體驗課 30分</label><input type="number" id="csaltrial" value="150" min="0"></div>
       <div class="modal-foot">
         <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
         <button class="btn btn-primary" onclick="submitAddCoach()">新增教練</button>
@@ -850,13 +938,10 @@ window.openModal=function(type,id){
         <div class="ff"><label>姓名</label><input id="cn" value="${c.name}"></div>
         <div class="ff"><label>帳號</label><input id="cu" value="${c.username}"></div>
       </div>
-      <div class="ff"><label>密碼</label><input id="cpw" value="${c.password}"></div>
-      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px;margin-top:4px">課酬設定（NT$）</div>
       <div class="form-grid">
-        <div class="ff"><label>一般課 60分</label><input type="number" id="csal60" value="${c.rates?.normal60||0}" min="0"></div>
-        <div class="ff"><label>一般課 90分</label><input type="number" id="csal90" value="${c.rates?.normal90||0}" min="0"></div>
+        <div class="ff"><label>密碼</label><input id="cpw" value="${c.password}"></div>
+        <div class="ff"><label>每堂課酬（NT$）</label><input type="number" id="csal" value="${c.salaryPerSession||0}" min="0"></div>
       </div>
-      <div class="ff" style="max-width:50%"><label>體驗課 30分</label><input type="number" id="csaltrial" value="${c.rates?.trial30||0}" min="0"></div>
       <div class="modal-foot">
         <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
         <button class="btn btn-primary" onclick="submitEditCoach('${id}')">儲存</button>
@@ -902,7 +987,7 @@ window.submitAddCoach=async function(){
   const name=$('cn').value.trim(),username=$('cu').value.trim(),password=$('cpw').value.trim();
   if(!name||!username||!password){toast('請填寫所有欄位',true);return;}
   if(objArr(coaches).find(c=>c.username===username)){toast('帳號已存在',true);return;}
-  const data={name,username,password,role:'coach',rates:{normal60:parseInt($('csal60').value)||0,normal90:parseInt($('csal90').value)||0,trial30:parseInt($('csaltrial').value)||0}};
+  const data={name,username,password,role:'coach',salaryPerSession:parseInt($('csal').value)||0};
   const newRef=push(ref(db,'coaches'));
   await set(newRef,data); coaches[newRef.key]=data;
   closeModal(); renderCoaches(); toast(`${name} 帳號已建立`);
@@ -910,7 +995,7 @@ window.submitAddCoach=async function(){
 
 window.submitEditCoach=async function(id){
   const c=coaches[id];
-  const data={name:$('cn').value.trim()||c.name,username:$('cu').value.trim()||c.username,password:$('cpw').value.trim()||c.password,rates:{normal60:parseInt($('csal60').value)||0,normal90:parseInt($('csal90').value)||0,trial30:parseInt($('csaltrial').value)||0}};
+  const data={name:$('cn').value.trim()||c.name,username:$('cu').value.trim()||c.username,password:$('cpw').value.trim()||c.password,salaryPerSession:parseInt($('csal').value)||0};
   await update(ref(db,'coaches/'+id),data);
   coaches[id]={...c,...data};
   closeModal(); renderCoaches(); toast('教練資料已更新');
@@ -926,24 +1011,16 @@ function buildTimeOptions(){
   opts.push('<option value="00:00">00:00</option>');
   return opts.join('');
 }
-
 function renderCheckin(){
   const startSel=$('ci-start'), endSel=$('ci-end');
-  if(!startSel.options.length){
-    startSel.innerHTML=buildTimeOptions();
-    endSel.innerHTML=buildTimeOptions();
-    startSel.value='07:00'; endSel.value='08:00';
-  }
+  if(!startSel.options.length){startSel.innerHTML=buildTimeOptions();endSel.innerHTML=buildTimeOptions();startSel.value='07:00';endSel.value='08:00';}
   const now=new Date();
   $('ci-date').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
   onClassChange();
 }
-
 window.onClassChange=function(){
   const cls=$('ci-class').value;
-  const cardStudentIds=new Set(
-    objArr(payments).filter(p=>!p.hidden&&p.classType===cls).map(p=>p.studentId)
-  );
+  const cardStudentIds=new Set(objArr(payments).filter(p=>!p.hidden&&p.classType===cls).map(p=>p.studentId));
   const filtered=objArr(students).filter(s=>cardStudentIds.has(s.id));
   const selectedIds=getSelectedIds();
   const available=filtered.filter(s=>!selectedIds.includes(s.id)&&rem(s)>0);
@@ -952,175 +1029,95 @@ window.onClassChange=function(){
     return `<div data-id="${s.id}" style="padding:8px 10px;border-radius:6px;margin-bottom:4px;background:#f5f5f5;font-size:13px;display:flex;justify-content:space-between;align-items:center;user-select:none">
       <span style="font-weight:500">${s.name}</span><span style="color:${r<=2?'var(--amber)':'var(--text2)'}">剩 ${r} 堂</span>
     </div>`;
-  }).join('') || '<div style="padding:1.5rem;color:var(--text3);font-size:13px;text-align:center">此班別無可上課學員</div>';
+  }).join('')||'<div style="padding:1.5rem;color:var(--text3);font-size:13px;text-align:center">此班別無可上課學員</div>';
 };
-
 window.onStartChange=function(){
-  const start=$('ci-start').value;
-  const [h,m]=start.split(':').map(Number);
-  let eh=h+1, em=m;
-  if(eh>=24) eh=0;
-  $('ci-end').value=`${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}`;
+  const [h,m]=$('ci-start').value.split(':').map(Number);
+  let eh=h+1; if(eh>=24)eh=0;
+  $('ci-end').value=`${String(eh).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
 };
-
-function getSelectedIds(){
-  return Array.from($('ci-selected').querySelectorAll('[data-id]')).map(el=>el.dataset.id);
-}
-
+function getSelectedIds(){return Array.from($('ci-selected').querySelectorAll('[data-id]')).map(el=>el.dataset.id);}
+function updateSelectedCount(){const cnt=getSelectedIds().length;const el=$('ci-selected-count');if(el)el.textContent=cnt?`（${cnt} 人）`:'';}
 window.addStudent=function(e){
-  const el=e.target.closest('[data-id]');
-  if(!el) return;
-  const id=el.dataset.id;
-  const s=students[id];
-  if(!s) return;
-  // 加入上課學員區（不顯示堂數）
+  const el=e.target.closest('[data-id]'); if(!el)return;
+  const id=el.dataset.id; const s=students[id]; if(!s)return;
   const div=document.createElement('div');
   div.dataset.id=id;
   div.style.cssText='padding:8px 10px;border-radius:6px;margin-bottom:4px;background:#e8f5e9;font-size:13px;display:flex;align-items:center;user-select:none';
   div.innerHTML=`<span style="font-weight:500">${s.name}</span>`;
-  $('ci-selected').appendChild(div);
-  el.remove();
-  updateSelectedCount();
+  $('ci-selected').appendChild(div); el.remove(); updateSelectedCount();
 };
 window.removeStudent=function(e){
-  const el=e.target.closest('[data-id]');
-  if(!el) return;
-  el.remove();
-  updateSelectedCount();
-  // 重新整理此班學員列表，顯示正確剩餘堂數
-  onClassChange();
+  const el=e.target.closest('[data-id]'); if(!el)return;
+  el.remove(); updateSelectedCount(); onClassChange();
 };
-
-function updateSelectedCount(){
-  const cnt=getSelectedIds().length;
-  const el=$('ci-selected-count');
-  if(el) el.textContent=cnt?`（${cnt} 人）`:'';
-}
-
 window.doCheckin=async function(){
   const selectedIds=getSelectedIds();
   if(!selectedIds.length){toast('請選擇上課學員',true);return;}
-  const date=$('ci-date').value, start=$('ci-start').value, end=$('ci-end').value;
-  if(!date){toast('請填寫日期',true);return;}
-  const cls=$('ci-class').value;
-  const note=$('ci-note').value.trim();
+  const date=$('ci-date').value; if(!date){toast('請填寫日期',true);return;}
+  const start=$('ci-start').value, end=$('ci-end').value;
+  const cls=$('ci-class').value, note=$('ci-note').value.trim();
   const btn=document.querySelector('#page-checkin .btn-success');
-  btn.disabled=true;
-  let successCount=0;
+  btn.disabled=true; let successCount=0;
   try{
     for(const studentId of selectedIds){
-      const s=students[studentId];
-      if(!s) continue;
+      const s=students[studentId]; if(!s)continue;
       if(rem(s)<=0){toast(`${s.name} 課堂已用完，已略過`,true);continue;}
       const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
-      if(card){
-        card.usedSessions=(card.usedSessions||0)+1;
-        await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
-        payments[card.id]=card;
-      }
+      if(card){card.usedSessions=(card.usedSessions||0)+1;await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});payments[card.id]=card;}
       const logData={studentId,coachId:currentUser.id,date,time:start,timeEnd:end,note,classType:cls};
-      const newRef=push(ref(db,'classLogs'));
-      await set(newRef,logData);
-      classLogs[newRef.key]=logData;
+      const newRef=push(ref(db,'classLogs')); await set(newRef,logData); classLogs[newRef.key]=logData;
       successCount++;
     }
-    if(successCount>0) toast(`${successCount} 位學員簽到完成 ✓`);
-    $('ci-note').value='';
-    $('ci-selected').innerHTML='';
-    updateSelectedCount();
-    await loadAll();
-    onClassChange();
+    if(successCount>0)toast(`${successCount} 位學員簽到完成 ✓`);
+    $('ci-note').value=''; $('ci-selected').innerHTML=''; updateSelectedCount();
+    await loadAll(); onClassChange();
   }catch(e){toast('簽到失敗：'+e.message,true);}
   finally{btn.disabled=false;}
 };
-
 window.cancelCheckin=async function(logId,studentId){
-  if(!confirm('確定取消這筆簽到？將還原一堂課。')) return;
+  if(!confirm('確定取消這筆簽到？將還原一堂課。'))return;
   const s=students[studentId];
-  if(s){
-    const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&(p.usedSessions||0)>0);
-    if(card){
-      card.usedSessions=Math.max(0,(card.usedSessions||0)-1);
-      await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});
-      payments[card.id]=card;
-    }
-  }
-  await remove(ref(db,'classLogs/'+logId));
-  delete classLogs[logId];
-  toast('簽到已取消');
+  if(s){const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&(p.usedSessions||0)>0);if(card){card.usedSessions=Math.max(0,(card.usedSessions||0)-1);await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});payments[card.id]=card;}}
+  await remove(ref(db,'classLogs/'+logId)); delete classLogs[logId];
   const q=document.querySelector('#page-history .search-bar input');
-  renderHistory(q?q.value:'');
+  renderHistory(q?q.value:''); toast('簽到已取消');
 };
 
-window.renderHistory=function(q=''){
-  // Hidden cards
-  const hiddenCards=objArr(payments).filter(p=>p.hidden);
-  const hbody=$('hidden-cards-tbody');
-  hbody.innerHTML=hiddenCards.length?hiddenCards.map(p=>{
-    const s=students[p.studentId]; const c=coaches[p.coachId];
-    const r=p.sessions-(p.usedSessions||0);
-    return `<tr>
-      <td>${p.date}</td>
-      <td><span class="badge b-blue">${p.classType||'—'}</span></td>
-      <td>${s?s.name:'—'}</td>
-      <td>${r}/${p.sessions} 堂</td>
-      <td>${c?c.name:'—'}</td>
-      <td>NT$ ${Number(p.amount||0).toLocaleString()}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" onclick="restoreCard('${p.id}')"><i class="ti ti-eye"></i>恢復顯示</button>
-        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i></button>`:''}
-      </td>
-    </tr>`;
-  }).join(''):`<tr><td colspan="7" class="empty" style="padding:1rem"><i class="ti ti-check"></i>無隱藏課程卡</td></tr>`;
-  window.restoreCard=async function(id){
-    await update(ref(db,'payments/'+id),{hidden:false});
-    payments[id].hidden=false;
-    renderHistory(''); renderCards(); toast('課程卡已恢復顯示');
-  };
-  const logs=objArr(classLogs)
-    // 所有教練皆可看到全部簽到紀錄
-    .filter(l=>{if(!q) return true; const s=students[l.studentId]; return s&&s.name.includes(q);})
-    .sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  const tbody=$('history-tbody');
-  if(!logs.length){tbody.innerHTML=`<tr><td colspan="5" class="empty"><i class="ti ti-history"></i>尚無紀錄</td></tr>`;return;}
-  tbody.innerHTML=logs.map(l=>{
-    const s=students[l.studentId];
-    const c=coaches[l.coachId];
-    return `<tr>
-      <td>${l.date} ${l.time}</td>
-      <td>${s?s.name:'—'}</td>
-      <td>${c?c.name:'—'}</td>
-      <td>${{normal60:'一般課60分',normal90:'一般課90分',trial30:'體驗課30分'}[l.sessionType||'normal60']}</td>
-      <td>${l.note||'—'}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="cancelCheckin('${l.id}','${l.studentId}')"><i class="ti ti-x"></i>取消</button></td>
-    </tr>`;
-  }).join('');
-};
 
-// ── Coaches ──
-window.hideCard=async function(id){
-  if(!confirm('確定將此課程卡移至歷史？將不再顯示在列表中。')) return;
-  await update(ref(db,'payments/'+id),{hidden:true});
-  payments[id].hidden=true;
-  renderCards(); toast('已移至課程卡歷史');
-};
-window.deleteCard=async function(id){
-  if(!confirm('確定永久刪除此課程卡？此操作無法復原。')) return;
-  const p=payments[id];
-  if(p){
-    const s=students[p.studentId];
-    if(s){
-      s.totalSessions=Math.max(0,(s.totalSessions||0)-p.sessions);
-      s.usedSessions=Math.max(0,(s.usedSessions||0)-(p.usedSessions||0));
-      await update(ref(db,'students/'+p.studentId),{totalSessions:s.totalSessions,usedSessions:s.usedSessions});
+window.syncCardSessions=async function(){
+  const btn=document.querySelector('[onclick="syncCardSessions()"]');
+  if(btn){btn.disabled=true;btn.textContent='同步中…';}
+  try{
+    let fixCount=0;
+    const allCards=objArr(payments);
+    for(const card of allCards){
+      const allStudentCards=allCards.filter(c=>c.studentId===card.studentId).sort((a,b)=>a.date.localeCompare(b.date));
+      const cardIdx=allStudentCards.findIndex(c=>c.id===card.id);
+      const prevSessions=allStudentCards.slice(0,cardIdx).reduce((sum,c)=>sum+c.sessions,0);
+      const studentLogs=objArr(classLogs).filter(l=>l.studentId===card.studentId).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+      const myLogs=studentLogs.slice(prevSessions,prevSessions+card.sessions);
+      const realUsed=myLogs.length;
+      if(realUsed!==(card.usedSessions||0)){
+        await update(ref(db,'payments/'+card.id),{usedSessions:realUsed});
+        payments[card.id].usedSessions=realUsed;
+        fixCount++;
+      }
     }
+    const resultEl=$('sync-result');
+    if(resultEl) resultEl.textContent=`✓ 同步完成，共修正 ${fixCount} 張課程卡`;
+    renderCards(); renderStudents('');
+  }catch(e){
+    const resultEl=$('sync-result');
+    if(resultEl){resultEl.textContent='同步失敗：'+e.message;resultEl.style.color='var(--red)';}
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i>重新同步課程卡堂數';}
   }
-  await remove(ref(db,'payments/'+id));
-  delete payments[id];
-  renderCards(); toast('課程卡已刪除');
 };
+
 function renderCoaches(){
   const tbody=$('coaches-tbody');
+  if(!tbody) return;
   tbody.innerHTML=objArr(coaches).map(c=>`<tr>
     <td><strong>${c.name}</strong></td>
     <td>${c.username}</td>
@@ -1139,53 +1136,33 @@ window.delCoach=async function(id){
   renderCoaches(); toast('教練已刪除');
 };
 
-// ── Password ──
-window.syncCardSessions=async function(){
-  const btn=document.querySelector('[onclick="syncCardSessions()"]');
-  btn.disabled=true;
-  btn.textContent='同步中…';
-  try{
-    // 計算每張課程卡實際被使用的次數（從 classLogs）
-    let fixCount=0;
-    const allCards=objArr(payments);
-    for(const card of allCards){
-      // 找出這張卡對應的簽到紀錄
-      // 用開卡日期之後、同學員的簽到紀錄來計算
-      const cardLogs=objArr(classLogs).filter(l=>l.studentId===card.studentId&&l.date>=card.date);
-      // 如果學員有多張卡，只計算這張卡應負責的堂數（依開卡順序）
-      const allStudentCards=allCards.filter(c=>c.studentId===card.studentId).sort((a,b)=>a.date.localeCompare(b.date));
-      const cardIdx=allStudentCards.findIndex(c=>c.id===card.id);
-      const prevCards=allStudentCards.slice(0,cardIdx);
-      const prevSessions=prevCards.reduce((sum,c)=>sum+c.sessions,0);
-      const studentLogs=objArr(classLogs).filter(l=>l.studentId===card.studentId).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-      const myLogs=studentLogs.slice(prevSessions,prevSessions+card.sessions);
-      const realUsed=myLogs.length;
-      if(realUsed!==(card.usedSessions||0)){
-        await update(ref(db,'payments/'+card.id),{usedSessions:realUsed});
-        payments[card.id].usedSessions=realUsed;
-        fixCount++;
-      }
-    }
-    $('sync-result').textContent=`✓ 同步完成，共修正 ${fixCount} 張課程卡`;
-    renderCards();
-    renderStudents('');
-  }catch(e){
-    $('sync-result').textContent='同步失敗：'+e.message;
-    $('sync-result').style.color='var(--red)';
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML='<i class="ti ti-refresh"></i>重新同步課程卡堂數';
+window.renderHistory=function(q=''){
+  const hiddenCards=objArr(payments).filter(p=>p.hidden);
+  const hbody=$('hidden-cards-tbody');
+  if(hbody){
+    hbody.innerHTML=hiddenCards.length?hiddenCards.map(p=>{
+      const s=students[p.studentId]; const c=coaches[p.coachId];
+      const r=p.sessions-(p.usedSessions||0);
+      return `<tr><td>${p.date}</td><td><span class="badge b-blue">${p.classType||'—'}</span></td><td>${s?s.name:'—'}</td><td>${r}/${p.sessions} 堂</td><td>${c?c.name:'—'}</td><td>NT$ ${Number(p.amount||0).toLocaleString()}</td><td>
+        <button class="btn btn-outline btn-sm" onclick="restoreCard('${p.id}')"><i class="ti ti-eye"></i>恢復</button>
+        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i></button>`:''}
+      </td></tr>`;
+    }).join(''):`<tr><td colspan="7" class="empty" style="padding:1rem">無隱藏課程卡</td></tr>`;
   }
+  window.restoreCard=async function(id){
+    await update(ref(db,'payments/'+id),{hidden:false});
+    payments[id].hidden=false;
+    renderHistory(''); renderCards(); toast('課程卡已恢復顯示');
+  };
 };
 window.changePassword=async function(){
-  const oldPw=$('pw-old').value,newPw=$('pw-new').value,confirm=$('pw-confirm').value;
-  if(!oldPw||!newPw||!confirm){toast('請填寫所有欄位',true);return;}
+  const oldPw=$('pw-old').value,newPw=$('pw-new').value,conf=$('pw-confirm').value;
+  if(!oldPw||!newPw||!conf){toast('請填寫所有欄位',true);return;}
   if(oldPw!==currentUser.password){toast('目前密碼錯誤',true);return;}
-  if(newPw!==confirm){toast('新密碼與確認密碼不一致',true);return;}
+  if(newPw!==conf){toast('新密碼與確認密碼不一致',true);return;}
   if(newPw.length<4){toast('密碼至少需要4個字元',true);return;}
   await update(ref(db,'coaches/'+currentUser.id),{password:newPw});
-  currentUser.password=newPw;
-  coaches[currentUser.id].password=newPw;
+  currentUser.password=newPw; coaches[currentUser.id].password=newPw;
   $('pw-old').value='';$('pw-new').value='';$('pw-confirm').value='';
   toast('密碼已更新！');
 };
