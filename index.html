@@ -568,7 +568,7 @@ window.renderStudents=function(q=''){
       <td>
         <button class="btn btn-outline btn-sm" onclick="goCheckin('${s.id}')"><i class="ti ti-calendar-plus"></i>簽到</button>
         <button class="btn btn-outline btn-sm" onclick="openModal('edit-student','${s.id}')"><i class="ti ti-edit"></i></button>
-        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="delStudent('${s.id}')"><i class="ti ti-trash"></i></button>`:''}
+        ${currentUser.role==='admin'?'<button class="btn btn-danger btn-sm" onclick="delStudent(\''+s.id+'\')" ><i class="ti ti-trash"></i></button>':''}
       </td>
     </tr>`;
   }).join('');
@@ -642,70 +642,89 @@ function renderAllSalary(){
   calcAllSalary();
 }
 window.calcAllSalary=function(){
-  const startDate=$('allsal-start').value, endDate=$('allsal-end').value;
-  if(!startDate||!endDate)return;
-  const coachOrder=['1儒','阿諾','妍蓁','銨銨','E3'];
-  const allCoaches=objArr(coaches).filter(c=>c.role!=='admin').sort((a,b)=>{
-    const ai=coachOrder.indexOf(a.name),bi=coachOrder.indexOf(b.name);
-    if(ai===-1&&bi===-1)return a.name.localeCompare(b.name,'zh-TW');
-    if(ai===-1)return 1; if(bi===-1)return -1; return ai-bi;
-  });
-  function calcHours(s,e){if(!s||!e)return 0;const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);return Math.max(0,((eh*60+em)-(sh*60+sm))/60);}
+  const startDate=$('all-salary-start').value;
+  const endDate=$('all-salary-end').value;
+  if(!startDate||!endDate) return;
+  const allCoaches=objArr(coaches).filter(function(c){return c.role!=='admin';});
   let html='';
-  allCoaches.forEach(coach=>{
-    const myLogs=objArr(classLogs).filter(l=>l.coachId===coach.id&&l.date>=startDate&&l.date<=endDate);
-    const sessionMap={};
-    myLogs.forEach(l=>{
-      const key=`${l.classType||'個人班'}|${l.date}|${l.time}|${l.timeEnd||''}`;
-      if(!sessionMap[key])sessionMap[key]={classType:l.classType||'個人班',date:l.date,time:l.time,timeEnd:l.timeEnd||'',students:[],note:l.note||'',manualPay:l.manualPay||0};
-      sessionMap[key].students.push(l.studentId);
-      if(l.manualPay!==undefined)sessionMap[key].manualPay=l.manualPay;
+
+  function calcHours(s,e){
+    if(!s||!e) return 0;
+    var sh=parseInt(s.split(':')[0]),sm=parseInt(s.split(':')[1]);
+    var eh=parseInt(e.split(':')[0]),em=parseInt(e.split(':')[1]);
+    return Math.max(0,((eh*60+em)-(sh*60+sm))/60);
+  }
+
+  allCoaches.forEach(function(coach){
+    var myLogs=objArr(classLogs).filter(function(l){
+      return l.coachId===coach.id&&l.date>=startDate&&l.date<=endDate;
     });
-    const sessions=Object.values(sessionMap).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
-    let totalHours=0,totalSalary=0;
-    const rows=sessions.map(s=>{
-      const hours=calcHours(s.time,s.timeEnd);
-      const pay=s.manualPay||0;
-      totalHours+=hours; totalSalary+=pay;
-      const timeStr=s.time+(s.timeEnd?` ～ ${s.timeEnd}`:'');
-      const studentNames=s.students.map(id=>{const st=students[id];return st?st.name:'—';}).join('、');
-      const sessionKey=encodeURIComponent(`${coach.id}|${s.date}|${s.time}|${s.classType}`);
-      return `<tr>
-        <td><span class="badge b-blue">${s.classType}</span></td>
-        <td>${s.date}</td>
-        <td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" onclick="showStudentPopup('${studentNames}')">${s.students.length}人</span></td>
-        <td>${timeStr}</td>
-        <td>${hours>0?hours+'hr':'0'}</td>
-        <td><input type="number" min="0" value="${pay}" data-key="${sessionKey}" data-coach="${coach.id}" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this)" placeholder="金額"></td>
-        <td>${s.note||''}</td>
-      </tr>`;
-    }).join('');
-    html+=`<div class="card" style="margin-bottom:1rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
-        <div style="font-size:15px;font-weight:700">${coach.name}</div>
-        <div style="font-size:13px;color:var(--text2)">總時數：<strong>${totalHours}hr</strong>&ensp;總薪資：<strong style="color:var(--green)">NT$ <span id="total-${coach.id}">${totalSalary}</span></strong></div>
-      </div>
-      ${sessions.length?`<div class="table-wrap"><table>
-        <thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資（NT$）</th><th>備註</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table></div>`:'<div class="empty" style="padding:1rem"><i class="ti ti-calendar-off"></i>此期間無上課紀錄</div>'}
-    </div>`;
+    var sessionMap={};
+    myLogs.forEach(function(l){
+      var key=(l.classType||'個人班')+'|'+l.date+'|'+l.time+'|'+(l.timeEnd||'');
+      if(!sessionMap[key]) sessionMap[key]={classType:l.classType||'個人班',date:l.date,time:l.time,timeEnd:l.timeEnd||'',students:[],note:l.note||''};
+      sessionMap[key].students.push(l.studentId);
+    });
+    var sessions=Object.values(sessionMap).sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time);});
+    var totalHours=0, totalSalary=0;
+
+    var tableRows='';
+    sessions.forEach(function(s){
+      var hours=calcHours(s.time,s.timeEnd);
+      var cnt=s.students.length;
+      var savedPay=0;
+      myLogs.forEach(function(l){if(l.date===s.date&&l.time===s.time&&(l.classType||'個人班')===s.classType&&l.manualPay) savedPay=l.manualPay;});
+      totalHours+=hours;
+      totalSalary+=savedPay;
+      var timeStr=s.time+(s.timeEnd?' ～ '+s.timeEnd:'');
+      var studentNames=s.students.map(function(id){return students[id]?students[id].name:'—';}).join('、');
+      var sessionKey=coach.id+'|'+s.date+'|'+s.time+'|'+s.classType;
+      tableRows+='<tr>'+
+        '<td><span class="badge b-blue">'+s.classType+'</span></td>'+
+        '<td>'+s.date+'</td>'+
+        '<td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" onclick="showStudentPopup(''+studentNames+'')">'+cnt+'人</span></td>'+
+        '<td>'+timeStr+'</td>'+
+        '<td>'+(hours>0?hours+'hr':'0')+'</td>'+
+        '<td><input type="number" min="0" value="'+savedPay+'" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this,''+sessionKey+'')" placeholder="輸入金額"></td>'+
+        '<td>'+s.note+'</td>'+
+        '</tr>';
+    });
+
+    html+='<div class="card" style="margin-bottom:1rem">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">'+
+      '<div style="font-size:15px;font-weight:700">'+coach.name+'</div>'+
+      '<div style="font-size:13px;color:var(--text2)">總時數：<strong>'+totalHours+'hr</strong>&ensp;總薪資：<strong style="color:var(--green)">NT$ <span id="total-'+coach.id+'">'+totalSalary+'</span></strong></div>'+
+      '</div>'+
+      (sessions.length?
+        '<div class="table-wrap"><table>'+
+        '<thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資（NT$）</th><th>備註</th></tr></thead>'+
+        '<tbody>'+tableRows+'</tbody></table></div>'
+        :'<div class="empty" style="padding:1rem"><i class="ti ti-calendar-off"></i>此期間無上課紀錄</div>')+
+      '</div>';
   });
-  $('allsal-result').innerHTML=html||'<div class="empty"><i class="ti ti-users-off"></i>無教練資料</div>';
+
+  $('all-salary-result').innerHTML=html||'<div class="empty"><i class="ti ti-users-off"></i>無教練資料</div>';
 };
-window.saveManualPay=async function(input){
-  const pay=parseInt(input.value)||0;
-  const sessionKey=decodeURIComponent(input.dataset.key);
-  const coachId=input.dataset.coach;
-  const [cId,date,time,classType]=sessionKey.split('|');
-  const logsToUpdate=objArr(classLogs).filter(l=>l.coachId===cId&&l.date===date&&l.time===time&&(l.classType||'個人班')===classType);
-  for(const l of logsToUpdate){classLogs[l.id].manualPay=pay;await update(ref(db,'classLogs/'+l.id),{manualPay:pay});}
-  const totEl=document.getElementById('total-'+coachId);
+window.saveManualPay=async function(inputEl, sessionKey){
+  const pay=parseInt(inputEl.value)||0;
+  const parts=sessionKey.split('|');
+  const coachId=parts[0], date=parts[1], time=parts[2], classType=parts[3];
+  const logsToUpdate=objArr(classLogs).filter(function(l){
+    return l.coachId===coachId&&l.date===date&&l.time===time&&(l.classType||'個人班')===classType;
+  });
+  for(var i=0;i<logsToUpdate.length;i++){
+    var l=logsToUpdate[i];
+    classLogs[l.id].manualPay=pay;
+    await update(ref(db,'classLogs/'+l.id),{manualPay:pay});
+  }
+  var totEl=document.getElementById('total-'+coachId);
   if(totEl){
-    const startDate=$('allsal-start').value, endDate=$('allsal-end').value;
-    const coachLogs=objArr(classLogs).filter(l=>l.coachId===coachId&&l.date>=startDate&&l.date<=endDate);
-    const seen=new Set(); let newTotal=0;
-    coachLogs.forEach(l=>{const k=`${l.date}|${l.time}|${l.classType||'個人班'}`;if(!seen.has(k)){seen.add(k);newTotal+=(l.manualPay||0);}});
+    var newTotal=0;
+    var seen={};
+    objArr(classLogs).filter(function(l){return l.coachId===coachId;}).forEach(function(l){
+      var k=l.date+'|'+l.time+'|'+(l.classType||'個人班');
+      if(!seen[k]){seen[k]=true;newTotal+=(l.manualPay||0);}
+    });
     totEl.textContent=newTotal;
   }
   toast('薪資已儲存');
@@ -1125,7 +1144,7 @@ function renderCoaches(){
     <td>${objArr(students).filter(s=>s.coachId===c.id).length} 位</td>
     <td>
       <button class="btn btn-outline btn-sm" onclick="openModal('edit-coach','${c.id}')"><i class="ti ti-edit"></i></button>
-      ${c.role!=='admin'?`<button class="btn btn-danger btn-sm" onclick="delCoach('${c.id}')"><i class="ti ti-trash"></i></button>`:''}
+      ${c.role!=='admin'?'<button class="btn btn-danger btn-sm" onclick="delCoach(\''+c.id+'\')" ><i class="ti ti-trash"></i></button>':''}
     </td>
   </tr>`).join('');
 }
@@ -1145,7 +1164,7 @@ window.renderHistory=function(q=''){
       const r=p.sessions-(p.usedSessions||0);
       return `<tr><td>${p.date}</td><td><span class="badge b-blue">${p.classType||'—'}</span></td><td>${s?s.name:'—'}</td><td>${r}/${p.sessions} 堂</td><td>${c?c.name:'—'}</td><td>NT$ ${Number(p.amount||0).toLocaleString()}</td><td>
         <button class="btn btn-outline btn-sm" onclick="restoreCard('${p.id}')"><i class="ti ti-eye"></i>恢復</button>
-        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i></button>`:''}
+        ${currentUser.role==='admin'?'<button class="btn btn-danger btn-sm" onclick="deleteCard(\''+p.id+'\')" ><i class="ti ti-trash"></i></button>':''}
       </td></tr>`;
     }).join(''):`<tr><td colspan="7" class="empty" style="padding:1rem">無隱藏課程卡</td></tr>`;
   }
