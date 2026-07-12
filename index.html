@@ -686,7 +686,7 @@ window.calcAllSalary=function(){
         '<td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" data-names="'+encodeURIComponent(studentNames)+'" onclick="showStudentPopup(this)">'+cnt+'人</span></td>'+
         '<td>'+timeStr+'</td>'+
         '<td>'+(hours>0?hours+'hr':'0')+'</td>'+
-        '<td><input type="number" min="0" value="'+savedPay+'" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this,''+sessionKey+'')" placeholder="輸入金額"></td>'+
+        '<td><input type="number" min="0" value="'+savedPay+'" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this,this.dataset.key)" data-key="'+sessionKey+'" placeholder="輸入金額"></td>'+
         '<td>'+s.note+'</td>'+
         '</tr>';
     });
@@ -939,6 +939,7 @@ window.openModal=function(type,id){
       </div>
       <div class="ff"><label>備註</label><input id="card-note" placeholder="選填"></div>
       <div class="modal-foot"><button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button><button class="btn btn-primary" onclick="submitAddCard()">新增課程卡</button></div>`;
+  }
   if(type==='add-coach'){
     modal.innerHTML=`<div class="modal-head">新增教練<button class="modal-close" onclick="closeModal()">×</button></div>
       <div class="form-grid">
