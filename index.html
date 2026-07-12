@@ -637,8 +637,9 @@ function renderAllSalary(){
   const now=new Date();
   const firstDay=new Date(now.getFullYear(),now.getMonth(),1);
   const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  $('all-salary-start').value=fmt(firstDay);
-  $('all-salary-end').value=fmt(now);
+  const s=$('all-salary-start'), e=$('all-salary-end');
+  if(s) s.value=fmt(firstDay);
+  if(e) e.value=fmt(now);
   calcAllSalary();
 }
 window.calcAllSalary=function(){
@@ -731,6 +732,7 @@ window.saveManualPay=async function(inputEl, sessionKey){
 };
 
 function renderCards(){
+  window._cardLogsMap = {};
   const list=objArr(payments).filter(p=>!p.hidden).sort((a,b)=>b.date.localeCompare(a.date));
   const tbody=$('cards-tbody');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty"><i class="ti ti-credit-card-off"></i>尚無課程卡</td></tr>`;return;}
@@ -742,6 +744,7 @@ function renderCards(){
     const pct=p.sessions?Math.max(0,Math.round(r/p.sessions*100)):0;
     const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">有效</span>';
         const cardLogs=objArr(classLogs).filter(l=>l.studentId===p.studentId&&l.date>=p.date).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,p.sessions);
+    window._cardLogsMap[p.id]=cardLogs.map(l=>({date:l.date,time:l.time,coachId:l.coachId}));
     // Store logs in global map, use card id as key
     window._cardLogsMap=window._cardLogsMap||{};
     window._cardLogsMap[p.id]=cardLogs;
