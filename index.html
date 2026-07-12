@@ -744,16 +744,13 @@ function renderCards(){
     const pct=p.sessions?Math.max(0,Math.round(r/p.sessions*100)):0;
     const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">有效</span>';
         const cardLogs=objArr(classLogs).filter(l=>l.studentId===p.studentId&&l.date>=p.date).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,p.sessions);
-    window._cardLogsMap[p.id]=cardLogs.map(l=>({date:l.date,time:l.time,coachId:l.coachId}));
-    // Store logs in global map, use card id as key
-    window._cardLogsMap=window._cardLogsMap||{};
     window._cardLogsMap[p.id]=cardLogs;
     return `<tr>
       <td>${p.date}</td>
       <td><span class="badge b-blue">${p.classType||'—'}</span></td>
       <td><strong>${s?s.name:'—'}</strong></td>
       <td>
-        <div style="font-size:14px;font-weight:600;cursor:pointer;color:var(--primary);text-decoration:underline" onclick="showCardLogs('${p.id}','${s?s.name:'—'}')">${r} / ${p.sessions} 堂</div>
+        <div style="font-size:14px;font-weight:600;cursor:pointer;color:var(--primary);text-decoration:underline" onclick="showCardLogs('${p.id}')">${r} / ${p.sessions} 堂</div>
         <div class="prog-bar" style="min-width:80px"><div class="prog-fill" style="width:${pct}%"></div></div>
       </td>
       <td>
@@ -769,7 +766,10 @@ function renderCards(){
   }).join('');
 }
 
-window.showCardLogs=function(cardId, studentName){
+window.showCardLogs=function(cardId){
+  const cardPayment=Object.values(payments).find(p=>p.id===cardId)||payments[cardId];
+  const s=cardPayment?students[cardPayment.studentId]:null;
+  const studentName=s?s.name:'學員';
   const logs=(window._cardLogsMap&&window._cardLogsMap[cardId])||[];
   const overlay=$('overlay'), modal=$('modal');
   overlay.classList.add('open');
