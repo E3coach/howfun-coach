@@ -753,6 +753,7 @@ function renderCards(){
         <div style="font-size:14px;font-weight:600;cursor:pointer;color:var(--primary);text-decoration:underline" onclick="showCardLogs('${p.id}')">${r} / ${p.sessions} 堂</div>
         <div class="prog-bar" style="min-width:80px"><div class="prog-fill" style="width:${pct}%"></div></div>
       </td>
+      <td>${c?c.name:'—'}</td>
       <td>
         NT$ ${Number(p.amount||0).toLocaleString()}
         <button class="btn btn-outline btn-sm" style="margin-left:6px;padding:3px 8px;font-size:11px" onclick="editCardAmount('${p.id}',${p.amount||0})"><i class="ti ti-edit"></i>修改</button>
@@ -767,7 +768,7 @@ function renderCards(){
 }
 
 window.showCardLogs=function(cardId){
-  const cardPayment=Object.values(payments).find(p=>p.id===cardId)||payments[cardId];
+  const cardPayment=payments[cardId]||Object.values(payments).find(p=>p.id===cardId);
   const s=cardPayment?students[cardPayment.studentId]:null;
   const studentName=s?s.name:'學員';
   const logs=(window._cardLogsMap&&window._cardLogsMap[cardId])||[];
@@ -776,11 +777,13 @@ window.showCardLogs=function(cardId){
   let rows='';
   if(logs.length){
     logs.forEach(function(l,i){
+      const coachName=coaches[l.coachId]?coaches[l.coachId].name:'—';
+      const timeStr=l.time+(l.timeEnd?' ～ '+l.timeEnd:'');
       rows+='<tr>'+
         '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center">'+(i+1)+'</td>'+
         '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+l.date+'</td>'+
-        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+l.time+'</td>'+
-        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+(coaches[l.coachId]&&coaches[l.coachId].name||'—')+'</td>'+
+        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+timeStr+'</td>'+
+        '<td style="padding:8px 12px;border-bottom:1px solid #e0e0e0">'+coachName+'</td>'+
         '</tr>';
     });
   } else {
@@ -878,7 +881,7 @@ window.submitEditAmount=async function(cardId){
 window.openModal=function(type,id){
   const overlay=$('overlay'),modal=$('modal');
   overlay.classList.add('open');
-  const coachOpts=(sel)=>objArr(coaches).filter(c=>c.role==='coach').map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
+  const coachOpts=(sel)=>objArr(coaches).map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
 
   if(type==='add-student'){
     modal.innerHTML=`<div class="modal-head">新增學員<button class="modal-close" onclick="closeModal()">×</button></div>
