@@ -683,7 +683,7 @@ window.calcAllSalary=function(){
       tableRows+='<tr>'+
         '<td><span class="badge b-blue">'+s.classType+'</span></td>'+
         '<td>'+s.date+'</td>'+
-        '<td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" onclick="showStudentPopup(''+studentNames+'')">'+cnt+'人</span></td>'+
+        '<td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" data-names="'+encodeURIComponent(studentNames)+'" onclick="showStudentPopup(this)">'+cnt+'人</span></td>'+
         '<td>'+timeStr+'</td>'+
         '<td>'+(hours>0?hours+'hr':'0')+'</td>'+
         '<td><input type="number" min="0" value="'+savedPay+'" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this,''+sessionKey+'')" placeholder="輸入金額"></td>'+
@@ -828,7 +828,8 @@ window.deleteCard=async function(id){
   await remove(ref(db,'payments/'+id)); delete payments[id];
   renderCards(); toast('課程卡已刪除');
 };
-window.showStudentPopup=function(names){
+window.showStudentPopup=function(el){
+  const names=el.dataset?decodeURIComponent(el.dataset.names||''):el;
   const overlay=$('overlay'), modal=$('modal');
   overlay.classList.add('open');
   const list=names.split('、').map(n=>`<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:14px">${n}</div>`).join('');
