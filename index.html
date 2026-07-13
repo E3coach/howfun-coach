@@ -624,15 +624,16 @@ window.calcSalary=function(){
       <td>${hours>0?hours+'hr':'0'}</td>
       <td style="color:var(--green);font-weight:600">${pay>0?pay+' (待審)':'0 (待審)'}</td>
       <td>${s.note||''}</td>
+      <td><button class="btn btn-danger btn-sm" data-date="${s.date}" data-time="${s.time}" data-timeend="${s.timeEnd||''}" data-classtype="${s.classType}" onclick="deleteSalarySession(this)"><i class="ti ti-trash"></i>刪除</button></td>
     </tr>`;
   }).join('');
   $('salary-result').innerHTML=`<div class="card"><div class="table-wrap"><table>
-    <thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資</th><th>備註</th></tr></thead>
-    <tbody>${rows||'<tr><td colspan="7" class="empty" style="padding:1.5rem"><i class="ti ti-calendar-off"></i>此區間無上課紀錄</td></tr>'}</tbody>
-    <tfoot><tr style="background:#fff8e1;font-weight:600"><td colspan="4" style="padding:10px 12px">總和：</td><td style="padding:10px 12px">${totalHours}hr</td><td style="padding:10px 12px;color:var(--green)">${totalSalary}</td><td></td></tr></tfoot>
+    <thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資</th><th>備註</th><th>操作</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" class="empty" style="padding:1.5rem"><i class="ti ti-calendar-off"></i>此區間無上課紀錄</td></tr>'}</tbody>
+    <tfoot><tr style="background:#fff8e1;font-weight:600"><td colspan="4" style="padding:10px 12px">總和：</td><td style="padding:10px 12px">${totalHours}hr</td><td style="padding:10px 12px;color:var(--green)">${totalSalary}</td><td></td><td></td></tr></tfoot>
   </table></div></div>`;
 };
-
+  
 function renderAllSalary(){
   const now=new Date();
   const firstDay=new Date(now.getFullYear(),now.getMonth(),1);
@@ -1076,6 +1077,21 @@ window.cancelCheckin=async function(logId,studentId){
   await remove(ref(db,'classLogs/'+logId)); delete classLogs[logId];
   const q=document.querySelector('#page-history .search-bar input');
   renderHistory(q?q.value:''); toast('簽到已取消');
+};
+
+window.deleteSalarySession=async function(btn){
+  const date=btn.dataset.date, time=btn.dataset.time, timeEnd=btn.dataset.timeend, classType=btn.dataset.classtype;
+  if(!confirm('確定刪除這筆上課紀錄？將還原這次上課所有學員的堂數。'))return;
+  const logsToDelete=objArr(classLogs).filter(l=>l.coachId===currentUser.id&&l.date===date&&l.time===time&&(l.timeEnd||'')===timeEnd&&(l.classType||'個人班')===classType);
+  for(const l of logsToDelete){
+    const s=students[l.studentId];
+    if(s){
+      const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===l.studentId&&(p.usedSessions||0)>0);
+      if(card){card.usedSessions=Math.max(0,(card.usedSessions||0)-1);await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});payments[card.id]=card;}
+    }
+    await remove(ref(db,'classLogs/'+l.id)); delete classLogs[l.id];
+  }
+  calcSalary(); toast(`已刪除並還原 ${logsToDelete.length} 位學員的堂數`);
 };
 
 
