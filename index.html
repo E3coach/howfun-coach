@@ -733,7 +733,8 @@ window.saveManualPay=async function(inputEl, sessionKey){
 
 function renderCards(){
   window._cardLogsMap = {};
-  const list=objArr(payments).filter(p=>!p.hidden).sort((a,b)=>b.date.localeCompare(a.date));
+  const allPayments=objArr(payments);
+  const list=allPayments.filter(p=>!p.hidden).sort((a,b)=>b.date.localeCompare(a.date));
   const tbody=$('cards-tbody');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty"><i class="ti ti-credit-card-off"></i>尚無課程卡</td></tr>`;return;}
   tbody.innerHTML=list.map(p=>{
@@ -743,7 +744,11 @@ function renderCards(){
     const r=p.sessions-used;
     const pct=p.sessions?Math.max(0,Math.round(r/p.sessions*100)):0;
     const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">有效</span>';
-        const cardLogs=objArr(classLogs).filter(l=>l.studentId===p.studentId&&l.date>=p.date).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,p.sessions);
+    const allStudentCards=allPayments.filter(c2=>c2.studentId===p.studentId).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
+    const cardIdx=allStudentCards.findIndex(c2=>c2.id===p.id);
+    const prevSessions=allStudentCards.slice(0,cardIdx).reduce((sum,c2)=>sum+c2.sessions,0);
+    const studentLogs=objArr(classLogs).filter(l=>l.studentId===p.studentId).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+    const cardLogs=studentLogs.slice(prevSessions,prevSessions+p.sessions);
     window._cardLogsMap[p.id]=cardLogs;
     return `<tr>
       <td>${p.date}</td>
@@ -1081,7 +1086,7 @@ window.syncCardSessions=async function(){
     let fixCount=0;
     const allCards=objArr(payments);
     for(const card of allCards){
-      const allStudentCards=allCards.filter(c=>c.studentId===card.studentId).sort((a,b)=>a.date.localeCompare(b.date));
+      const allStudentCards=allCards.filter(c=>c.studentId===card.studentId).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
       const cardIdx=allStudentCards.findIndex(c=>c.id===card.id);
       const prevSessions=allStudentCards.slice(0,cardIdx).reduce((sum,c)=>sum+c.sessions,0);
       const studentLogs=objArr(classLogs).filter(l=>l.studentId===card.studentId).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
