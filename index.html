@@ -753,12 +753,12 @@ function renderCards(){
         <div style="font-size:14px;font-weight:600;cursor:pointer;color:var(--primary);text-decoration:underline" onclick="showCardLogs('${p.id}')">${r} / ${p.sessions} 堂</div>
         <div class="prog-bar" style="min-width:80px"><div class="prog-fill" style="width:${pct}%"></div></div>
       </td>
-      <td>${c?c.name:'—'}</td>
-      <td>
+      <td style="white-space:nowrap">${c&&c.name?c.name:'未指定'}</td>
+      <td style="white-space:nowrap">
         NT$ ${Number(p.amount||0).toLocaleString()}
         <button class="btn btn-outline btn-sm" style="margin-left:6px;padding:3px 8px;font-size:11px" onclick="editCardAmount('${p.id}',${p.amount||0})"><i class="ti ti-edit"></i>修改</button>
       </td>
-      <td>${badge}</td>
+      <td style="white-space:nowrap">${badge}</td>
       <td style="white-space:nowrap;display:flex;gap:6px">
         <button class="btn btn-danger btn-sm" onclick="hideCard('${p.id}')"><i class="ti ti-eye-off"></i>不顯示</button>
         <button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i>刪除</button>
@@ -796,25 +796,6 @@ window.showCardLogs=function(cardId){
     '<div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>';
 };
 
-window.editCardAmount=function(cardId, currentAmount){
-  const overlay=$('overlay'), modal=$('modal');
-  overlay.classList.add('open');
-  modal.innerHTML=`<div class="modal-head">修改金額<button class="modal-close" onclick="closeModal()">×</button></div>
-    <div class="ff"><label>金額（NT$）</label><input type="number" id="new-amount" value="${currentAmount}" min="0" style="font-size:16px"></div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal()" style="border:1px solid var(--border)">取消</button>
-      <button class="btn btn-primary" onclick="submitEditAmount('${cardId}')">儲存</button>
-    </div>`;
-  setTimeout(()=>document.getElementById('new-amount')?.focus(),100);
-};
-
-window.submitEditAmount=async function(cardId){
-  const newAmount=parseInt(document.getElementById('new-amount').value)||0;
-  await update(ref(db,'payments/'+cardId),{amount:newAmount});
-  payments[cardId].amount=newAmount;
-  closeModal(); renderCards(); toast('金額已更新');
-};
-
 window.hideCard=async function(id){
   if(!confirm('確定將此課程卡移至歷史？')) return;
   await update(ref(db,'payments/'+id),{hidden:true});
@@ -840,25 +821,6 @@ window.showStudentPopup=function(el){
     <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem">${list}</div>
     <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>`;
 };
-window.showCardLogs=function(encodedLogs, studentName){
-  const overlay=$('overlay'), modal=$('modal');
-  overlay.classList.add('open');
-  const logs=decodeURIComponent(encodedLogs).split('||').filter(Boolean);
-  const rows=logs.length?logs.map((l,i)=>{
-    const parts=l.split(' ');
-    const date=parts[0]||'';
-    const time=parts[1]||'';
-    const coach=parts.slice(2).join(' ')||'—';
-    return `<tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${i+1}</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${date}</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${time}</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">${coach}</td></tr>`;
-  }).join(''):`<tr><td colspan="4" style="padding:1rem;text-align:center;color:var(--text2)">尚無上課紀錄</td></tr>`;
-  modal.innerHTML=`<div class="modal-head">${studentName} 上課紀錄<button class="modal-close" onclick="closeModal()">×</button></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th style="padding:8px 12px">#</th><th style="padding:8px 12px">日期</th><th style="padding:8px 12px">時間</th><th style="padding:8px 12px">教練</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-    <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>`;
-};
-
 window.editCardAmount=function(cardId, currentAmount){
   const overlay=$('overlay'), modal=$('modal');
   overlay.classList.add('open');
@@ -1170,7 +1132,7 @@ window.renderHistory=function(q=''){
     hbody.innerHTML=hiddenCards.length?hiddenCards.map(p=>{
       const s=students[p.studentId]; const c=coaches[p.coachId];
       const r=p.sessions-(p.usedSessions||0);
-      return `<tr><td>${p.date}</td><td><span class="badge b-blue">${p.classType||'—'}</span></td><td>${s?s.name:'—'}</td><td>${r}/${p.sessions} 堂</td><td>${c?c.name:'—'}</td><td>NT$ ${Number(p.amount||0).toLocaleString()}</td><td>
+      return `<tr><td>${p.date}</td><td><span class="badge b-blue">${p.classType||'—'}</span></td><td>${s?s.name:'—'}</td><td>${r}/${p.sessions} 堂</td><td style="white-space:nowrap">${c&&c.name?c.name:'未指定'}</td><td style="white-space:nowrap">NT$ ${Number(p.amount||0).toLocaleString()}</td><td>
         <button class="btn btn-outline btn-sm" onclick="restoreCard('${p.id}')"><i class="ti ti-eye"></i>恢復</button>
         ${currentUser.role==='admin'?'<button class="btn btn-danger btn-sm" onclick="deleteCard(\''+p.id+'\')" ><i class="ti ti-trash"></i></button>':''}
       </td></tr>`;
