@@ -638,17 +638,18 @@ function renderAllSalary(){
   const now=new Date();
   const firstDay=new Date(now.getFullYear(),now.getMonth(),1);
   const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const s=$('all-salary-start'), e=$('all-salary-end');
+  const s=$('allsal-start'), e=$('allsal-end');
   if(s) s.value=fmt(firstDay);
   if(e) e.value=fmt(now);
   calcAllSalary();
 }
 window.calcAllSalary=function(){
-  const startDate=$('all-salary-start').value;
-  const endDate=$('all-salary-end').value;
+  const startDate=$('allsal-start').value;
+  const endDate=$('allsal-end').value;
   if(!startDate||!endDate) return;
   const allCoaches=objArr(coaches).filter(function(c){return c.role!=='admin';});
   let html='';
+  let summaryRows='';
 
   function calcHours(s,e){
     if(!s||!e) return 0;
@@ -668,7 +669,7 @@ window.calcAllSalary=function(){
       sessionMap[key].students.push(l.studentId);
     });
     var sessions=Object.values(sessionMap).sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time);});
-    var totalHours=0, totalSalary=0;
+    var totalHours=0, totalSalary=0, pendingCount=0;
 
     var tableRows='';
     sessions.forEach(function(s){
@@ -676,6 +677,7 @@ window.calcAllSalary=function(){
       var cnt=s.students.length;
       var savedPay=0;
       myLogs.forEach(function(l){if(l.date===s.date&&l.time===s.time&&(l.classType||'個人班')===s.classType&&l.manualPay) savedPay=l.manualPay;});
+      if(!savedPay) pendingCount++;
       totalHours+=hours;
       totalSalary+=savedPay;
       var timeStr=s.time+(s.timeEnd?' ～ '+s.timeEnd:'');
@@ -692,6 +694,20 @@ window.calcAllSalary=function(){
         '</tr>';
     });
 
+    var allLogs=objArr(classLogs).filter(function(l){return l.coachId===coach.id;});
+    var seenKey={}, cumulative=0;
+    allLogs.forEach(function(l){
+      var k=(l.classType||'個人班')+'|'+l.date+'|'+l.time+'|'+(l.timeEnd||'');
+      if(!seenKey[k]){seenKey[k]=true; cumulative+=(l.manualPay||0);}
+    });
+
+    summaryRows+='<tr>'+
+      '<td><strong>'+coach.name+'</strong></td>'+
+      '<td>'+(pendingCount>0?'<span class="badge b-amber">'+pendingCount+'</span>':'<span class="badge b-green">0</span>')+'</td>'+
+      '<td>NT$ '+cumulative.toLocaleString()+'</td>'+
+      '<td style="color:var(--green);font-weight:600">NT$ '+totalSalary.toLocaleString()+'</td>'+
+      '</tr>';
+
     html+='<div class="card" style="margin-bottom:1rem">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">'+
       '<div style="font-size:15px;font-weight:700">'+coach.name+'</div>'+
@@ -705,7 +721,14 @@ window.calcAllSalary=function(){
       '</div>';
   });
 
-  $('all-salary-result').innerHTML=html||'<div class="empty"><i class="ti ti-users-off"></i>無教練資料</div>';
+  const summaryTable='<div class="card" style="margin-bottom:1rem">'+
+    '<div class="card-title"><i class="ti ti-report-money"></i>教練薪資總覽</div>'+
+    '<div class="table-wrap"><table>'+
+    '<thead><tr><th>教練</th><th>待審堂數</th><th>累積薪資（歷史總額）</th><th>本期薪資</th></tr></thead>'+
+    '<tbody>'+(summaryRows||'<tr><td colspan="4" class="empty" style="padding:1rem">無教練資料</td></tr>')+'</tbody>'+
+    '</table></div></div>';
+
+  $('allsal-result').innerHTML=summaryTable+(html||'<div class="empty"><i class="ti ti-users-off"></i>無教練資料</div>');
 };
 window.saveManualPay=async function(inputEl, sessionKey){
   const pay=parseInt(inputEl.value)||0;
