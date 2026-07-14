@@ -648,15 +648,7 @@ window.calcAllSalary=function(){
   const endDate=$('allsal-end').value;
   if(!startDate||!endDate) return;
   const allCoaches=objArr(coaches);
-  let html='';
   let summaryRows='';
-
-  function calcHours(s,e){
-    if(!s||!e) return 0;
-    var sh=parseInt(s.split(':')[0]),sm=parseInt(s.split(':')[1]);
-    var eh=parseInt(e.split(':')[0]),em=parseInt(e.split(':')[1]);
-    return Math.max(0,((eh*60+em)-(sh*60+sm))/60);
-  }
 
   allCoaches.forEach(function(coach){
     var myLogs=objArr(classLogs).filter(function(l){
@@ -669,31 +661,15 @@ window.calcAllSalary=function(){
       sessionMap[key].students.push(l.studentId);
     });
     var sessions=Object.values(sessionMap).sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time);});
-    var totalHours=0, totalSalary=0, pendingCount=0;
+    var totalSalary=0, pendingCount=0;
 
-    var tableRows='';
     sessions.forEach(function(s){
-      var hours=calcHours(s.time,s.timeEnd);
-      var cnt=s.students.length;
       var savedPay=0;
       myLogs.forEach(function(l){if(l.date===s.date&&l.time===s.time&&(l.classType||'個人班')===s.classType&&l.manualPay) savedPay=l.manualPay;});
       var isApproved=false;
       myLogs.forEach(function(l){if(l.date===s.date&&l.time===s.time&&(l.classType||'個人班')===s.classType&&l.approved) isApproved=true;});
       if(!isApproved) pendingCount++;
-      totalHours+=hours;
       totalSalary+=savedPay;
-      var timeStr=s.time+(s.timeEnd?' ～ '+s.timeEnd:'');
-      var studentNames=s.students.map(function(id){return students[id]?students[id].name:'—';}).join('、');
-      var sessionKey=coach.id+'|'+s.date+'|'+s.time+'|'+s.classType;
-      tableRows+='<tr>'+
-        '<td><span class="badge b-blue">'+s.classType+'</span></td>'+
-        '<td>'+s.date+'</td>'+
-        '<td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" data-names="'+encodeURIComponent(studentNames)+'" onclick="showStudentPopup(this)">'+cnt+'人</span></td>'+
-        '<td>'+timeStr+'</td>'+
-        '<td>'+(hours>0?hours+'hr':'0')+'</td>'+
-        '<td><input type="number" min="0" value="'+savedPay+'" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this,this.dataset.key)" data-key="'+sessionKey+'" placeholder="輸入金額"></td>'+
-        '<td>'+s.note+'</td>'+
-        '</tr>';
     });
 
     var allLogs=objArr(classLogs).filter(function(l){return l.coachId===coach.id;});
@@ -705,22 +681,10 @@ window.calcAllSalary=function(){
 
     summaryRows+='<tr>'+
       '<td><strong>'+coach.name+'</strong></td>'+
-      '<td>'+(pendingCount>0?'<span class="badge b-amber" style="cursor:pointer;text-decoration:underline" onclick="showCoachSessions(\''+coach.id+'\')">'+pendingCount+'</span>':'<span class="badge b-green">0</span>')+'</td>'+
+      '<td><span class="badge '+(pendingCount>0?'b-amber':'b-green')+'" style="cursor:pointer;text-decoration:underline" onclick="showCoachSessions(\''+coach.id+'\')">'+pendingCount+'</span></td>'+
       '<td>NT$ '+cumulative.toLocaleString()+'</td>'+
       '<td style="color:var(--green);font-weight:600">NT$ '+totalSalary.toLocaleString()+'</td>'+
       '</tr>';
-
-    html+='<div class="card" style="margin-bottom:1rem">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">'+
-      '<div style="font-size:15px;font-weight:700">'+coach.name+'</div>'+
-      '<div style="font-size:13px;color:var(--text2)">總時數：<strong>'+totalHours+'hr</strong>&ensp;總薪資：<strong style="color:var(--green)">NT$ <span id="total-'+coach.id+'">'+totalSalary+'</span></strong></div>'+
-      '</div>'+
-      (sessions.length?
-        '<div class="table-wrap"><table>'+
-        '<thead><tr><th>班別</th><th>日期</th><th>人數</th><th>時間</th><th>時數</th><th>薪資（NT$）</th><th>備註</th></tr></thead>'+
-        '<tbody>'+tableRows+'</tbody></table></div>'
-        :'<div class="empty" style="padding:1rem"><i class="ti ti-calendar-off"></i>此期間無上課紀錄</div>')+
-      '</div>';
   });
 
   const summaryTable='<div class="card" style="margin-bottom:1rem">'+
@@ -730,7 +694,7 @@ window.calcAllSalary=function(){
     '<tbody>'+(summaryRows||'<tr><td colspan="4" class="empty" style="padding:1rem">無教練資料</td></tr>')+'</tbody>'+
     '</table></div></div>';
 
-  $('allsal-result').innerHTML=summaryTable+(html||'<div class="empty"><i class="ti ti-users-off"></i>無教練資料</div>');
+  $('allsal-result').innerHTML=summaryTable;
 };
 window.saveManualPay=async function(inputEl, sessionKey){
   const pay=parseInt(inputEl.value)||0;
@@ -794,7 +758,7 @@ window.showCoachSessions=function(coachId){
       <td>${cumulative}hr</td>
       <td>${hours>0?hours+'hr':'0'}</td>
       <td><input type="number" min="0" value="${s.manualPay}" style="width:80px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this,this.dataset.key)" data-key="${sessionKey}"></td>
-      <td>${s.approved?'<span class="badge b-green">已審核</span>':`<button class="btn btn-outline btn-sm" onclick="approveSession('${sessionKey}')"><i class="ti ti-check"></i>審核</button>`}</td>
+      <td style="white-space:nowrap">${s.approved?'<span class="badge b-green" style="margin-right:6px">已審核</span>':'<span class="badge b-amber" style="margin-right:6px">待審核</span>'}<button class="btn btn-outline btn-sm" onclick="approveSession('${sessionKey}')"><i class="ti ti-check"></i>審核</button></td>
       <td><button class="btn btn-danger btn-sm" data-date="${s.date}" data-time="${s.time}" data-timeend="${s.timeEnd||''}" data-classtype="${s.classType}" onclick="deleteSalarySessionFromModal(this,'${coachId}')"><i class="ti ti-trash"></i>刪除</button></td>
     </tr>`;
   }).join('') || `<tr><td colspan="10" class="empty" style="padding:1.5rem"><i class="ti ti-calendar-off"></i>此期間無上課紀錄</td></tr>`;
