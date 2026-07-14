@@ -439,15 +439,14 @@ const sortedCoaches = list => list.slice().sort((a,b)=>{
 });
 const rem = s => {
   const cards = objArr(payments).filter(p=>p.studentId===s.id&&!p.hidden);
-  if(cards.length===0) return (s.totalSessions||0)-(s.usedSessions||0);
+  if(cards.length===0) return 0;
   return cards.reduce((sum,p)=>sum+(p.sessions-(p.usedSessions||0)),0);
 };
 const remTotal = s => {
   const cards = objArr(payments).filter(p=>p.studentId===s.id&&!p.hidden);
-  if(cards.length===0) return s.totalSessions||0;
+  if(cards.length===0) return 0;
   return cards.reduce((sum,p)=>sum+p.sessions,0);
 };
-
 function toast(msg, isErr=false){
   const t=$('toast'); $('tmsg').textContent=msg;
   t.style.background=isErr?'#c62828':'#323232';
@@ -547,8 +546,10 @@ function myStudents(){
 window.renderStudents=function(q=''){
   const list=myStudents().filter(s=>!q||(s.name+(s.phone||'')).includes(q));
   // stats
-  const low=list.filter(s=>rem(s)>0&&rem(s)<=2);
-  const done=list.filter(s=>rem(s)<=0);
+  // stats：只計算目前有現存（未隱藏）課程卡的學員，被移到課程卡歷史的不列入
+  const withActiveCard=list.filter(s=>objArr(payments).some(p=>p.studentId===s.id&&!p.hidden));
+  const low=withActiveCard.filter(s=>rem(s)>0&&rem(s)<=2);
+  const done=withActiveCard.filter(s=>rem(s)<=0);
   $('student-stats').innerHTML=`
     <div class="stat-card"><div class="stat-num">${list.length}</div><div class="stat-label">學員總數</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${low.length}</div><div class="stat-label">即將用完</div></div>
