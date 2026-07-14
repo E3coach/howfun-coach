@@ -677,7 +677,9 @@ window.calcAllSalary=function(){
       var cnt=s.students.length;
       var savedPay=0;
       myLogs.forEach(function(l){if(l.date===s.date&&l.time===s.time&&(l.classType||'個人班')===s.classType&&l.manualPay) savedPay=l.manualPay;});
-      if(!savedPay) pendingCount++;
+      var isApproved=false;
+      myLogs.forEach(function(l){if(l.date===s.date&&l.time===s.time&&(l.classType||'個人班')===s.classType&&l.approved) isApproved=true;});
+      if(!isApproved) pendingCount++;
       totalHours+=hours;
       totalSalary+=savedPay;
       var timeStr=s.time+(s.timeEnd?' ～ '+s.timeEnd:'');
@@ -703,7 +705,7 @@ window.calcAllSalary=function(){
 
     summaryRows+='<tr>'+
       '<td><strong>'+coach.name+'</strong></td>'+
-      '<td>'+(pendingCount>0?'<span class="badge b-amber">'+pendingCount+'</span>':'<span class="badge b-green">0</span>')+'</td>'+
+      '<td>'+(pendingCount>0?'<span class="badge b-amber" style="cursor:pointer;text-decoration:underline" onclick="showCoachSessions(\''+coach.id+'\')">'+pendingCount+'</span>':'<span class="badge b-green">0</span>')+'</td>'+
       '<td>NT$ '+cumulative.toLocaleString()+'</td>'+
       '<td style="color:var(--green);font-weight:600">NT$ '+totalSalary.toLocaleString()+'</td>'+
       '</tr>';
@@ -755,6 +757,88 @@ window.saveManualPay=async function(inputEl, sessionKey){
   toast('薪資已儲存');
 };
 
+window.showCoachSessions=function(coachId){
+  window._currentCoachSessionModal=coachId;
+  const coach=coaches[coachId];
+  if(!coach) return;
+  const startDate=$('allsal-start').value, endDate=$('allsal-end').value;
+  const myLogs=objArr(classLogs).filter(l=>l.coachId===coachId&&l.date>=startDate&&l.date<=endDate);
+  const sessionMap={};
+  myLogs.forEach(l=>{
+    const key=(l.classType||'個人班')+'|'+l.date+'|'+l.time+'|'+(l.timeEnd||'');
+    if(!sessionMap[key]) sessionMap[key]={classType:l.classType||'個人班',date:l.date,time:l.time,timeEnd:l.timeEnd||'',students:[],manualPay:0,approved:false};
+    sessionMap[key].students.push(l.studentId);
+    if(l.manualPay) sessionMap[key].manualPay=l.manualPay;
+    if(l.approved) sessionMap[key].approved=true;
+  });
+  function calcHours(s,e){
+    if(!s||!e) return 0;
+    const sp=s.split(':').map(Number), ep=e.split(':').map(Number);
+    return Math.max(0,((ep[0]*60+ep[1])-(sp[0]*60+sp[1]))/60);
+  }
+  const sessions=Object.values(sessionMap).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  let cumulative=0;
+  const rows=sessions.map(s=>{
+    const hours=calcHours(s.time,s.timeEnd);
+    cumulative+=hours;
+    const cnt=s.students.length;
+    const timeStr=s.time+(s.timeEnd?' ～ '+s.timeEnd:'');
+    const studentNames=s.students.map(id=>students[id]?students[id].name:'—').join('、');
+    const sessionKey=coachId+'|'+s.date+'|'+s.time+'|'+s.classType;
+    return `<tr>
+      <td><span class="badge b-blue">${s.classType}</span></td>
+      <td>${coach.name}</td>
+      <td>${s.date}</td>
+      <td><span style="color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline" data-names="${encodeURIComponent(studentNames)}" onclick="showStudentPopup(this)">${cnt}人</span></td>
+      <td style="white-space:nowrap">${timeStr}</td>
+      <td>${cumulative}hr</td>
+      <td>${hours>0?hours+'hr':'0'}</td>
+      <td><input type="number" min="0" value="${s.manualPay}" style="width:80px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:13px" onchange="saveManualPay(this,this.dataset.key)" data-key="${sessionKey}"></td>
+      <td>${s.approved?'<span class="badge b-green">已審核</span>':`<button class="btn btn-outline btn-sm" onclick="approveSession('${sessionKey}')"><i class="ti ti-check"></i>審核</button>`}</td>
+      <td><button class="btn btn-danger btn-sm" data-date="${s.date}" data-time="${s.time}" data-timeend="${s.timeEnd||''}" data-classtype="${s.classType}" onclick="deleteSalarySessionFromModal(this,'${coachId}')"><i class="ti ti-trash"></i>刪除</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="10" class="empty" style="padding:1.5rem"><i class="ti ti-calendar-off"></i>此期間無上課紀錄</td></tr>`;
+
+  const overlay=$('overlay'), modal=$('modal');
+  modal.style.maxWidth='980px';
+  overlay.classList.add('open');
+  modal.innerHTML=`<div class="modal-head">${coach.name} 簽到審核<button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>班別</th><th>教練</th><th>日期</th><th>人數</th><th>時間</th><th>累積</th><th>時數</th><th>薪資</th><th>審核</th><th>刪除</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">關閉</button></div>`;
+};
+
+window.approveSession=async function(sessionKey){
+  const parts=sessionKey.split('|');
+  const coachId=parts[0], date=parts[1], time=parts[2], classType=parts[3];
+  const logsToUpdate=objArr(classLogs).filter(l=>l.coachId===coachId&&l.date===date&&l.time===time&&(l.classType||'個人班')===classType);
+  for(const l of logsToUpdate){
+    classLogs[l.id].approved=true;
+    await update(ref(db,'classLogs/'+l.id),{approved:true});
+  }
+  toast('已審核');
+  showCoachSessions(coachId);
+  calcAllSalary();
+};
+
+window.deleteSalarySessionFromModal=async function(btn, coachId){
+  const date=btn.dataset.date, time=btn.dataset.time, timeEnd=btn.dataset.timeend, classType=btn.dataset.classtype;
+  if(!confirm('確定刪除這筆上課紀錄？將還原這次上課所有學員的堂數。'))return;
+  const logsToDelete=objArr(classLogs).filter(l=>l.coachId===coachId&&l.date===date&&l.time===time&&(l.timeEnd||'')===timeEnd&&(l.classType||'個人班')===classType);
+  for(const l of logsToDelete){
+    const s=students[l.studentId];
+    if(s){
+      const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===l.studentId&&(p.usedSessions||0)>0);
+      if(card){card.usedSessions=Math.max(0,(card.usedSessions||0)-1);await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});payments[card.id]=card;}
+    }
+    await remove(ref(db,'classLogs/'+l.id)); delete classLogs[l.id];
+  }
+  toast(`已刪除並還原 ${logsToDelete.length} 位學員的堂數`);
+  showCoachSessions(coachId);
+  calcAllSalary();
+};
 function renderCards(){
   window._cardLogsMap = {};
   const allPayments=objArr(payments);
@@ -967,7 +1051,7 @@ window.openModal=function(type,id){
   }
 };
 
-window.closeModal=()=>$('overlay').classList.remove('open');
+window.closeModal=()=>{$('overlay').classList.remove('open');$('modal').style.maxWidth='';};
 
 window.submitAddStudent=async function(){
   const name=$('mn').value.trim();
