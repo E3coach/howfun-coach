@@ -432,6 +432,11 @@ const db = getDatabase(fireApp);
 let currentUser = null;
 const $ = id => document.getElementById(id);
 const objArr = obj => obj ? Object.entries(obj).map(([id,v])=>({id,...v})) : [];
+const COACH_ORDER = ['1儒','阿諾','妍蓁','銨銨','E3'];
+const sortedCoaches = list => list.slice().sort((a,b)=>{
+  const ia=COACH_ORDER.indexOf(a.name), ib=COACH_ORDER.indexOf(b.name);
+  return (ia===-1?Infinity:ia)-(ib===-1?Infinity:ib);
+});
 const rem = s => {
   const cards = objArr(payments).filter(p=>p.studentId===s.id&&!p.hidden);
   if(cards.length===0) return (s.totalSessions||0)-(s.usedSessions||0);
@@ -647,7 +652,7 @@ window.calcAllSalary=function(){
   const startDate=$('allsal-start').value;
   const endDate=$('allsal-end').value;
   if(!startDate||!endDate) return;
-  const allCoaches=objArr(coaches);
+  const allCoaches=sortedCoaches(objArr(coaches));
   let summaryRows='';
 
   allCoaches.forEach(function(coach){
@@ -920,8 +925,7 @@ window.submitEditAmount=async function(cardId){
 window.openModal=function(type,id){
   const overlay=$('overlay'),modal=$('modal');
   overlay.classList.add('open');
-  const coachOpts=(sel)=>objArr(coaches).map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
-
+  const coachOpts=(sel)=>sortedCoaches(objArr(coaches)).map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('');
   if(type==='add-student'){
     modal.innerHTML=`<div class="modal-head">新增學員<button class="modal-close" onclick="closeModal()">×</button></div>
       <div class="form-grid">
@@ -1199,7 +1203,7 @@ window.syncCardSessions=async function(){
 function renderCoaches(){
   const tbody=$('coaches-tbody');
   if(!tbody) return;
-  tbody.innerHTML=objArr(coaches).map(c=>`<tr>
+  tbody.innerHTML=sortedCoaches(objArr(coaches)).map(c=>`<tr>
     <td><strong>${c.name}</strong></td>
     <td>${c.username}</td>
     <td><span class="badge ${c.role==='admin'?'b-amber':'b-blue'}">${c.role==='admin'?'總教練':'教練'}</span></td>
