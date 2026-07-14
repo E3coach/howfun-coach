@@ -265,7 +265,7 @@ tr:hover td{background:#fafafa}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>姓名</th><th>電話</th><th>負責教練</th><th>課程卡</th><th>狀態</th><th>操作</th></tr></thead>
+            <thead><tr><th>姓名</th><th>電話</th><th>負責教練</th><th>操作</th></tr></thead>
             <tbody id="students-tbody"></tbody>
           </table>
         </div>
@@ -554,22 +554,13 @@ window.renderStudents=function(q=''){
     <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${low.length}</div><div class="stat-label">即將用完</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--red)">${done.length}</div><div class="stat-label">課堂用完</div></div>`;
   const tbody=$('students-tbody');
-  if(!list.length){tbody.innerHTML=`<tr><td colspan="6" class="empty"><i class="ti ti-user-off"></i>尚無學員</td></tr>`;return;}
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="4" class="empty"><i class="ti ti-user-off"></i>尚無學員</td></tr>`;return;}
   tbody.innerHTML=list.map(s=>{
-    const r=rem(s);
-    const total=remTotal(s);
-    const pct=total?Math.max(0,Math.round(r/total*100)):0;
     const coach=coaches[s.coachId];
-    const badge=r<=0?'<span class="badge b-red">用完</span>':r<=2?'<span class="badge b-amber">即將用完</span>':'<span class="badge b-green">正常</span>';
     return `<tr>
       <td><strong>${s.name}</strong></td>
       <td>${s.phone||'—'}</td>
       <td>${coach?coach.name:'未指派'}</td>
-      <td>
-        <div style="font-size:13px">${r}/${s.totalSessions} 堂</div>
-        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
-      </td>
-      <td>${badge}</td>
       <td>
         <button class="btn btn-outline btn-sm" onclick="goCheckin('${s.id}')"><i class="ti ti-calendar-plus"></i>簽到</button>
         <button class="btn btn-outline btn-sm" onclick="openModal('edit-student','${s.id}')"><i class="ti ti-edit"></i></button>
