@@ -647,7 +647,7 @@ window.calcAllSalary=function(){
   const startDate=$('allsal-start').value;
   const endDate=$('allsal-end').value;
   if(!startDate||!endDate) return;
-  const allCoaches=objArr(coaches).filter(function(c){return c.role!=='admin';});
+  const allCoaches=objArr(coaches);
   let html='';
   let summaryRows='';
 
