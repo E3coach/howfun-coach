@@ -297,6 +297,10 @@ tr:hover td{background:#fafafa}
           <div class="card-title" style="margin:0"><i class="ti ti-credit-card"></i>課程卡列表</div>
           <button class="btn btn-primary" onclick="openModal('add-card')"><i class="ti ti-plus"></i>新增課程卡</button>
         </div>
+        <div class="search-bar" style="margin-top:.75rem">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="搜尋學員姓名…" oninput="renderCards(this.value)">
+        </div>
         <div class="table-wrap" style="margin-top:.75rem">
           <table>
             <thead><tr><th>開卡日期</th><th>班別</th><th>學員</th><th>堂數（剩餘/總數）</th><th>收款人</th><th>金額</th><th>狀態</th><th>操作</th></tr></thead>
@@ -800,10 +804,10 @@ window.deleteSalarySessionFromModal=async function(btn, coachId){
   showCoachSessions(coachId);
   calcAllSalary();
 };
-function renderCards(){
+function renderCards(q=''){
   window._cardLogsMap = {};
   const allPayments=objArr(payments);
-  const list=allPayments.filter(p=>!p.hidden).sort((a,b)=>b.date.localeCompare(a.date));
+  const list=allPayments.filter(p=>!p.hidden&&(!q||(students[p.studentId]&&students[p.studentId].name.includes(q)))).sort((a,b)=>b.date.localeCompare(a.date));
   const tbody=$('cards-tbody');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty"><i class="ti ti-credit-card-off"></i>尚無課程卡</td></tr>`;return;}
   tbody.innerHTML=list.map(p=>{
@@ -822,7 +826,7 @@ function renderCards(){
     return `<tr>
       <td>${p.date}</td>
       <td><span class="badge b-blue">${p.classType||'—'}</span></td>
-      <td><strong>${s?s.name:'—'}</strong></td>
+      <td><strong>${s?s.name:'—'}</strong><div style="font-size:11px;color:var(--text2);font-weight:400">ID: ${p.studentId}</div></td>
       <td>
         <div style="font-size:14px;font-weight:600;cursor:pointer;color:var(--primary);text-decoration:underline" onclick="showCardLogs('${p.id}')">${r} / ${p.sessions} 堂</div>
         <div class="prog-bar" style="min-width:80px"><div class="prog-fill" style="width:${pct}%"></div></div>
@@ -1089,7 +1093,7 @@ window.onClassChange=function(){
   $('ci-all').innerHTML=available.map(s=>{
     const r=rem(s);
     return `<div data-id="${s.id}" style="padding:8px 10px;border-radius:6px;margin-bottom:4px;background:#f5f5f5;font-size:13px;display:flex;justify-content:space-between;align-items:center;user-select:none">
-      <span style="font-weight:500">${s.name}</span><span style="color:${r<=2?'var(--amber)':'var(--text2)'}">剩 ${r} 堂</span>
+      <span><span style="font-weight:500">${s.name}</span><span style="color:var(--text3);font-size:11px"> (ID: ${s.id})</span></span><span style="color:${r<=2?'var(--amber)':'var(--text2)'}">剩 ${r} 堂</span>
     </div>`;
   }).join('')||'<div style="padding:1.5rem;color:var(--text3);font-size:13px;text-align:center">此班別無可上課學員</div>';
 };
