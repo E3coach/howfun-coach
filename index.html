@@ -807,7 +807,11 @@ window.deleteSalarySessionFromModal=async function(btn, coachId){
 function renderCards(q=''){
   window._cardLogsMap = {};
   const allPayments=objArr(payments);
-  const list=allPayments.filter(p=>!p.hidden&&(!q||(students[p.studentId]&&students[p.studentId].name.includes(q)))).sort((a,b)=>b.date.localeCompare(a.date));
+  const list=allPayments.filter(p=>{
+    const matchesName = !q || (students[p.studentId]&&students[p.studentId].name.includes(q));
+    if(!matchesName) return false;
+    return q ? true : !p.hidden;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
   const tbody=$('cards-tbody');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty"><i class="ti ti-credit-card-off"></i>尚無課程卡</td></tr>`;return;}
   tbody.innerHTML=list.map(p=>{
@@ -823,13 +827,14 @@ function renderCards(q=''){
     const studentLogs=objArr(classLogs).filter(l=>l.studentId===p.studentId).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
     const cardLogs=studentLogs.slice(prevSessions,prevSessions+p.sessions);
     window._cardLogsMap[p.id]=cardLogs;
-    return `<tr>
+    return `<tr${p.hidden?' style="opacity:.6;background:#fafafa"':''}>
       <td>${p.date}</td>
-      <td><span class="badge b-blue">${p.classType||'—'}</span></td>
+      <td><span class="badge b-blue">${p.classType||'—'}</span>${p.hidden?'<span class="badge b-gray" style="margin-left:4px">已隱藏</span>':''}</td>
       <td><strong>${s?s.name:'—'}</strong><div style="font-size:11px;color:var(--text2);font-weight:400">ID: ${p.studentId}</div></td>
       <td>
         <div style="font-size:14px;font-weight:600;cursor:pointer;color:var(--primary);text-decoration:underline" onclick="showCardLogs('${p.id}')">${r} / ${p.sessions} 堂</div>
         <div class="prog-bar" style="min-width:80px"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div style="font-size:11px;color:var(--text2)">已用 ${used} 堂</div>
       </td>
       <td style="white-space:nowrap">${c&&c.name?c.name:'未指定'}</td>
       <td style="white-space:nowrap">
@@ -838,7 +843,7 @@ function renderCards(q=''){
       </td>
       <td style="white-space:nowrap">${badge}</td>
       <td style="white-space:nowrap;display:flex;gap:6px">
-        <button class="btn btn-danger btn-sm" onclick="hideCard('${p.id}')"><i class="ti ti-eye-off"></i>不顯示</button>
+        ${p.hidden?'<button class="btn btn-outline btn-sm" onclick="restoreCard(\''+p.id+'\')"><i class="ti ti-eye"></i>恢復</button>':'<button class="btn btn-danger btn-sm" onclick="hideCard(\''+p.id+'\')"><i class="ti ti-eye-off"></i>不顯示</button>'}
         <button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i>刪除</button>
       </td>
     </tr>`;
@@ -1218,6 +1223,15 @@ window.delCoach=async function(id){
   renderCoaches(); toast('教練已刪除');
 };
 
+window.restoreCard=async function(id){
+  await update(ref(db,'payments/'+id),{hidden:false});
+  payments[id].hidden=false;
+  renderCards();
+  const hbody=$('hidden-cards-tbody');
+  if(hbody){const q=document.querySelector('#page-history .search-bar input');renderHistory(q?q.value:'');}
+  toast('課程卡已恢復顯示');
+};
+
 window.renderHistory=function(q=''){
   const hiddenCards=objArr(payments).filter(p=>p.hidden);
   const hbody=$('hidden-cards-tbody');
@@ -1231,11 +1245,6 @@ window.renderHistory=function(q=''){
       </td></tr>`;
     }).join(''):`<tr><td colspan="7" class="empty" style="padding:1rem">無隱藏課程卡</td></tr>`;
   }
-  window.restoreCard=async function(id){
-    await update(ref(db,'payments/'+id),{hidden:false});
-    payments[id].hidden=false;
-    renderHistory(''); renderCards(); toast('課程卡已恢復顯示');
-  };
 };
 window.changePassword=async function(){
   const oldPw=$('pw-old').value,newPw=$('pw-new').value,conf=$('pw-confirm').value;
