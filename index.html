@@ -1133,7 +1133,7 @@ window.doCheckin=async function(){
   try{
     await loadAll();
     for(const studentId of selectedIds){
-      const s=students[studentId]; if(!s)continue;
+      const s=students[studentId]?{id:studentId,...students[studentId]}:null; if(!s)continue;
       if(rem(s)<=0){toast(`${s.name} 課堂已用完，已略過`,true);continue;}
       const card=objArr(payments).filter(p=>!p.hidden).find(p=>p.studentId===studentId&&p.sessions-(p.usedSessions||0)>0);
       if(card){card.usedSessions=(card.usedSessions||0)+1;await update(ref(db,'payments/'+card.id),{usedSessions:card.usedSessions});payments[card.id]=card;}
