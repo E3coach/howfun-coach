@@ -261,7 +261,7 @@ tr:hover td{background:#fafafa}
         </div>
         <div class="search-bar" style="margin-top:.75rem">
           <i class="ti ti-search"></i>
-          <input type="text" placeholder="搜尋學員姓名或電話…" oninput="renderStudents(this.value)">
+          <input type="text" placeholder="搜尋學員姓名或電話…" oninput="renderStudents(this.value)" onkeydown="if(event.key==='Enter')renderStudents(this.value)">
         </div>
         <div class="table-wrap">
           <table>
@@ -299,7 +299,7 @@ tr:hover td{background:#fafafa}
         </div>
         <div class="search-bar" style="margin-top:.75rem">
           <i class="ti ti-search"></i>
-          <input type="text" placeholder="搜尋學員姓名…" oninput="renderCards(this.value)">
+          <input type="text" placeholder="搜尋學員姓名…" oninput="renderCards(this.value)" onkeydown="if(event.key==='Enter')renderCards(this.value)">
         </div>
         <div class="table-wrap" style="margin-top:.75rem">
           <table>
