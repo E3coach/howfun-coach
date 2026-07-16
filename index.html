@@ -804,7 +804,7 @@ window.deleteSalarySessionFromModal=async function(btn, coachId){
   showCoachSessions(coachId);
   calcAllSalary();
 };
-function renderCards(q=''){
+window.renderCards=function(q=''){
   window._cardLogsMap = {};
   const allPayments=objArr(payments);
   const list=allPayments.filter(p=>{
