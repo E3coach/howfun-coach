@@ -1122,6 +1122,7 @@ window.doCheckin=async function(){
   const btn=document.querySelector('#page-checkin .btn-success');
   btn.disabled=true; let successCount=0;
   try{
+    await loadAll();
     for(const studentId of selectedIds){
       const s=students[studentId]; if(!s)continue;
       if(rem(s)<=0){toast(`${s.name} 課堂已用完，已略過`,true);continue;}
