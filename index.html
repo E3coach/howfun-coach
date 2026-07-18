@@ -179,9 +179,11 @@ tr:hover td{background:#fafafa}
       <h1>Howfun 乒乓聚樂部</h1>
       <p>教練管理系統</p>
     </div>
-    <div class="lf"><label>帳號</label><input type="text" id="lu" placeholder="輸入帳號"></div>
-    <div class="lf"><label>密碼</label><input type="password" id="lp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="btn-login" onclick="doLogin()">登入</button>
+    <form id="login-form" autocomplete="on" onsubmit="event.preventDefault();doLogin();">
+    <div class="lf"><label>帳號</label><input type="text" id="lu" name="username" autocomplete="username" placeholder="輸入帳號"></div>
+    <div class="lf"><label>密碼</label><input type="password" id="lp" name="password" autocomplete="current-password" placeholder="輸入密碼"></div>
+    <button type="submit" class="btn-login">登入</button>
+    </form>
     <div class="login-err" id="lerr">帳號或密碼錯誤，請再試一次</div>
   </div>
 </div>
