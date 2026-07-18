@@ -845,9 +845,11 @@ window.renderCards=function(q=''){
         <button class="btn btn-outline btn-sm" style="margin-left:6px;padding:3px 8px;font-size:11px" onclick="editCardAmount('${p.id}',${p.amount||0})"><i class="ti ti-edit"></i>修改</button>
       </td>
       <td style="white-space:nowrap">${badge}</td>
-      <td style="white-space:nowrap;display:flex;gap:6px">
+      <td style="white-space:nowrap">
+        <div style="display:flex;gap:6px">
         ${p.hidden?'<button class="btn btn-outline btn-sm" onclick="restoreCard(\''+p.id+'\')"><i class="ti ti-eye"></i>恢復</button>':'<button class="btn btn-danger btn-sm" onclick="hideCard(\''+p.id+'\')"><i class="ti ti-eye-off"></i>不顯示</button>'}
         <button class="btn btn-danger btn-sm" onclick="deleteCard('${p.id}')"><i class="ti ti-trash"></i>刪除</button>
+        </div>
       </td>
     </tr>`;
   }).join('');
