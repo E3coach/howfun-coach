@@ -8,10 +8,10 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
-  --bg:#f5f5f5;--surface:#fff;--border:#e0e0e0;
-  --text:#212121;--text2:#757575;--text3:#bdbdbd;
-  --red:#d32f2f;--green:#2e7d32;--amber:#f57c00;
+  --primary:#2f8277;--primary-dark:#1f6358;--primary-light:#e5f2ef;
+  --bg:#faf3e8;--surface:#fff;--border:#e6dcc8;
+  --text:#2d2420;--text2:#8a7d6d;--text3:#c9bda8;
+  --red:#c1443f;--green:#2e7d32;--amber:#c77b1f;
   --sidebar:260px;--radius:8px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
@@ -41,7 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Noto Sans TC
 #app{display:none;min-height:100vh}
 .topbar{position:fixed;top:0;left:0;right:0;height:48px;background:var(--primary);color:#fff;display:flex;align-items:center;padding:0 1rem;z-index:100;gap:12px}
 .topbar-menu-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;display:none;padding:4px;line-height:1}
-.topbar-title{font-size:15px;font-weight:700;flex:1}
+.topbar-title{font-size:15px;font-weight:700;flex:1;cursor:pointer;user-select:none}
 .topbar-user{font-size:13px;opacity:.9}
 .btn-toplogout{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px}
 .btn-toplogout:hover{background:rgba(255,255,255,.3)}
@@ -193,7 +193,7 @@ tr:hover td{background:#fafafa}
   <!-- Topbar -->
   <div class="topbar">
     <button class="topbar-menu-btn" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
-    <div class="topbar-title">Howfun 乒乓聚樂部</div>
+    <div class="topbar-title" onclick="location.reload()" title="點擊重新整理">Howfun 乒乓聚樂部</div>
     <span class="topbar-user" id="topbar-user"></span>
     <button class="btn-toplogout" onclick="doLogout()"><i class="ti ti-logout" style="font-size:14px"></i>登出</button>
   </div>
